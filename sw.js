@@ -1,4 +1,4 @@
-const VER = '202610182112';
+const VER = '202610182123';
 const CACHE = 'zadza-' + VER;
 const FILES = ['./', 'index.html', 'style.css?v=' + VER, 'fonts.css?v=' + VER, 'data.js?v=' + VER, 'app.js?v=' + VER, 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',

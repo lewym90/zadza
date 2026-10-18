@@ -1279,4 +1279,45 @@ function konEnd() {
   });
   gend('Koniec kontroli', lines);
 }
+
+var INTRO = {
+  'go-cards': ['Karty', 'Talia zadań, która z każdą kartą robi się gorętsza.', [
+    '<b>Jak grać:</b> telefon przechodzi z rąk do rąk. Dociągacie kartę i robicie dokładnie to, co jest na niej napisane, dla osoby, której dotyczy.',
+    '<b>Temperatura:</b> przed grą wybieracie, czy temperatura rośnie sama, czy wybieracie poziom, czy losujecie. Ustawiacie też długość gry.',
+    '<b>Pominięcia:</b> każde ma limit pominięć. Po jego wyczerpaniu kolejne pominięcie kosztuje karę. Słowo bezpieczeństwa zatrzymuje wszystko.']],
+  'go-kama': ['Kamasutra', 'Pozycje z rysunkiem, krótkim opisem i wskazówką.', [
+    '<b>Jak grać:</b> losujcie pozycję albo przeglądajcie je według kategorii. Każda ma rysunek i opis, kto i co robi.',
+    '<b>Lista:</b> pod losowaniem jest lista wszystkich pozycji, a kategorie pozwalają zawęzić wybór.',
+    '<b>Zasada:</b> próbujecie tylko tego, na co oboje macie ochotę. Nie pasuje? Losujcie następną.']],
+  'go-pcw': ['Prawda czy Wyzwanie', 'Klasyk w ostrej wersji: wyznanie albo zadanie.', [
+    '<b>Jak grać:</b> na zmianę wybieracie Prawdę (szczere wyznanie) albo Wyzwanie (zadanie do wykonania od razu).',
+    '<b>Poziomy:</b> pytania i zadania robią się coraz bardziej intymne i brudne.',
+    '<b>Pominięcia:</b> po wyczerpaniu limitu pominięć odmowa kończy się karą.']],
+  'go-fant': ['Fantazje', 'Tajne wybory, a potem scenariusze tylko z tego, co kręci oboje.', [
+    '<b>Krok 1:</b> każde osobno i w tajemnicy zaznacza fantazje, które go kręcą. Drugie nie patrzy.',
+    '<b>Krok 2:</b> aplikacja odkrywa tylko te wybrane przez oboje. Nikt nie dowie się o tym, czego drugie nie chciało.',
+    '<b>Krok 3:</b> wspólne fantazje zamieniają się w scenariusze, które odgrywacie krok po kroku.']],
+  'go-licyt': ['Licytacja ciała', 'Tajne oferty żetonami o prawo do rozkazywania.', [
+    '<b>Start:</b> każde dostaje 20 żetonów. W każdej rundzie jest nagroda.',
+    '<b>Licytacja:</b> po kolei, w tajemnicy, wpisujecie ofertę na jednym telefonie. Kto da więcej, wygrywa i rozkazuje drugiemu.',
+    '<b>Płatność:</b> zwycięzca płaci swoją ofertę, a przegrany dostaje ją jako rekompensatę. Remis oddaje żetony.',
+    '<b>Uwaga:</b> czasem nagroda jest pułapką. Na koniec wygrywa ten, kto zebrał więcej żetonów, a finał to karta specjalna.']],
+  'go-kon': ['Kontrola', 'Jedno rozkazuje, drugie posłusznie wykonuje.', [
+    '<b>Role:</b> Władca wybiera rozkaz spośród trzech propozycji albo losuje. Posłuszny wykonuje go w wyznaczonym czasie.',
+    '<b>Ocena:</b> Władca ocenia wykonanie: dobrze, spóźnione albo źle. Szybkie i dobre wykonanie daje najwięcej punktów, złe odejmuje.',
+    '<b>Miernik:</b> gdy dojdzie do pełna, Posłuszny zasługuje na pozwolenie na orgazm. Gdy spadnie do zera, czeka go kara.',
+    '<b>Zakazy i zmiana:</b> Władca ma 3 zakazy po 30 sekund, a po kilkunastu minutach role się zamieniają. Przycisk STOP zatrzymuje wszystko.']],
+  'go-dice': ['Kostki', 'Cztery kostki, jedno zadanie i czas.', [
+    '<b>Jak grać:</b> rzucacie czterema kostkami. Z wyników składa się jedno zdanie: kto, co, gdzie i jak długo.',
+    '<b>Zadanie:</b> wykonujecie je, dopóki nie skończy się czas na liczniku.',
+    '<b>Ustawienia:</b> przed grą wybieracie temperaturę i czas na zadanie.']]
+};
+Object.keys(INTRO).forEach(function (id) {
+  var orig = $(id).onclick, I = INTRO[id];
+  $(id).onclick = function () {
+    $('intro-t').textContent = I[0]; $('intro-w').textContent = I[1];
+    $('intro-l').innerHTML = I[2].map(function (x) { return '<p>' + x + '</p>'; }).join('');
+    $('intro-go').onclick = orig; show('intro');
+  };
+});
 })();

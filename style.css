@@ -379,3 +379,7 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 #stop-ov b{font-family:var(--display);font-style:italic;font-weight:900;font-size:5rem;color:#ff4d6f}
 #stop-ov .btn{width:100%;max-width:340px}
 #kon-ban.live{color:#fff;font-weight:700}
+
+.intro-l{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.intro-l p{margin:0;padding:10px 14px;border-radius:14px;background:rgba(20,2,8,.55);box-shadow:inset 0 0 0 1px rgba(255,211,196,.14);font-size:.92rem;line-height:1.4;color:var(--skin)}
+.intro-l b{color:#fff}

@@ -15,8 +15,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="fonts.css?v=202610182112">
-<link rel="stylesheet" href="style.css?v=202610182112">
+<link rel="stylesheet" href="fonts.css?v=202610182123">
+<link rel="stylesheet" href="style.css?v=202610182123">
 </head>
 <body data-level="1" data-role="m">
 
@@ -115,6 +115,16 @@
     </div>
     <div class="grow"></div>
     <button class="chip" data-go="setup">Zmień imiona</button>
+  </section>
+
+  <!-- OPIS GRY -->
+  <section class="scr" id="s-intro">
+    <button class="back-l" data-go="choose"><svg><use href="#i-back"/></svg>Wróć</button>
+    <h2 class="hd" id="intro-t"></h2>
+    <p class="note" id="intro-w" style="min-height:0"></p>
+    <div class="intro-l" id="intro-l"></div>
+    <div class="grow"></div>
+    <button class="btn latex" id="intro-go">Jasne, grajmy</button>
   </section>
 
   <!-- KARTY: USTAWIENIA -->
@@ -540,7 +550,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="data.js?v=202610182112"></script>
-<script src="app.js?v=202610182112"></script>
+<script src="data.js?v=202610182123"></script>
+<script src="app.js?v=202610182123"></script>
 </body>
 </html>
