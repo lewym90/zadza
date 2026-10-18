@@ -63,7 +63,7 @@ document.addEventListener('click', function (e) {
 var wl = null;
 function wake() { try { if (navigator.wakeLock && !wl) navigator.wakeLock.request('screen').then(function (l) { wl = l; l.addEventListener('release', function () { wl = null; }); }).catch(function () {}); } catch (e) {} }
 function unwake() { try { if (wl) { wl.release(); wl = null; } } catch (e) {} }
-document.addEventListener('visibilitychange', function () { if (!document.hidden && cur === 'game') wake(); });
+document.addEventListener('visibilitychange', function () { if (!document.hidden && (cur === 'game' || cur === 'dice' || cur === 'lic' || cur === 'kon')) wake(); });
 
 function openSheet(id) { var s = $(id); s.classList.add('on'); s.setAttribute('aria-hidden', 'false'); }
 function closeSheets() { qa('.sheet').forEach(function (s) { s.classList.remove('on'); s.setAttribute('aria-hidden', 'true'); }); }
