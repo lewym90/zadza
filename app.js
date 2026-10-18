@@ -754,7 +754,7 @@ function kCats() {
 function kShow(id) {
   var k = DATA.kama[id]; if (!k) return;
   KM.cur = id;
-  $('k-fig').innerHTML = DATA.kamaSvg[k.p];
+  $('k-fig').innerHTML = DATA.kamaSvg[k.p] + '<div class="kleg"><i style="background:#6fd0ea"></i>On<i style="background:#ff7fa6"></i>Ona</div>';
   $('k-name').textContent = k.n;
   var fl = ''; for (var i = 0; i < 5; i++) fl += '<i class="' + (i < k.l ? 'on' : '') + '"></i>';
   $('k-heat').innerHTML = fl;

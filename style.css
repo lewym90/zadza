@@ -327,7 +327,7 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 .kcard[hidden]{display:none}
 .kcard.pop{animation:kpop .35s ease-out}
 @keyframes kpop{from{opacity:.2;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
-.kfig{border-radius:16px;background:#1a0a12;aspect-ratio:1.6;overflow:hidden}
+.kfig{position:relative;border-radius:16px;background:#1a0a12;aspect-ratio:1.6;overflow:hidden}
 .kfig svg{display:block;width:100%;height:100%}
 .khead{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .khead b{font-family:var(--display);font-style:italic;font-weight:700;font-size:1.5rem;line-height:1.1;color:var(--skin)}
@@ -383,3 +383,6 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 .intro-l{display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .intro-l p{margin:0;padding:8px 12px;border-radius:14px;background:rgba(20,2,8,.55);box-shadow:inset 0 0 0 1px rgba(255,211,196,.14);font-size:.92rem;line-height:1.4;color:var(--skin)}
 .intro-l b{color:#fff}
+
+.kleg{position:absolute;left:10px;top:8px;display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--skin);background:rgba(10,2,6,.6);padding:3px 8px;border-radius:10px}
+.kleg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:4px}.kleg i:first-child{margin-left:0}
