@@ -235,7 +235,7 @@ $('btn-draw-go').onclick = function () {
     per: length > 0 ? Math.max(3, Math.ceil(length / 4)) : 8,
     starter: d.starter, player: d.starter, turn: 0,
     names: S.names.slice(), skips: [S.set.skips, S.set.skips],
-    used: {}, lastHot: -9, cur: null, log: [],
+    used: {}, lastHot: -9, cur: null, log: [], cl: [0, 0], ejAt: -99,
     stat: { skips: 0, pens: 0, hot: 0, bony: 0 }, over: false, t0: Date.now()
   };
   S.game = G; save('game');
@@ -244,6 +244,46 @@ $('btn-draw-go').onclick = function () {
 };
 
 /* ---------- talia ---------- */
+/* spójność: stan ubrań (0 ubrany, 1 bielizna, 2 nago) i odstęp po wytrysku */
+var EJ_GAP = 12, LVMIN = [0, 0, 1, 1, 1];
+function clInit() {
+  if (!G.cl) G.cl = [0, 0];
+  if (G.ejAt === undefined) G.ejAt = -99;
+  var m = LVMIN[G.lvl] || 0;
+  if (G.cl[0] < m) G.cl[0] = m;
+  if (G.cl[1] < m) G.cl[1] = m;
+}
+function roleKey(p) { return p === 0 ? 'm' : 'f'; }
+function ejHere(c, p) { return !!c.ej && (c.ej === 'b' || c.ej === roleKey(p)); }
+function consistent(c) {
+  clInit();
+  var p = G.player, r = c.c && c.c[roleKey(p)];
+  if (r) {
+    if (r.ra && (G.cl[p] < r.ra[0] || G.cl[p] > r.ra[1])) return false;
+    if (r.rt && (G.cl[p ^ 1] < r.rt[0] || G.cl[p ^ 1] > r.rt[1])) return false;
+  }
+  if (ejHere(c, p) && G.turn - G.ejAt < EJ_GAP) return false;
+  return true;
+}
+function applyFx(v, cur) { return v === '+1' ? Math.min(2, cur + 1) : Math.max(cur, v); }
+function applyEffects() {
+  if (!G.cur) return;
+  var c = findCard(G.cur.id); if (!c) return;
+  clInit();
+  var p = G.player, r = c.c && c.c[roleKey(p)];
+  if (r) {
+    if (r.ea !== undefined) G.cl[p] = applyFx(r.ea, G.cl[p]);
+    if (r.et !== undefined) G.cl[p ^ 1] = applyFx(r.et, G.cl[p ^ 1]);
+  }
+  if (ejHere(c, p)) G.ejAt = G.turn;
+}
+function findCard(id) {
+  var i, l, arr;
+  for (l = 1; l <= 4; l++) { arr = LV[l].cards; for (i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; }
+  var pools = [HOT, FIN, PEN];
+  for (l = 0; l < 3; l++) for (i = 0; i < pools[l].length; i++) if (pools[l][i].id === id) return pools[l][i];
+  return null;
+}
 function vetoed(c) {
   if (!c.g || !S.prefs) return false;
   for (var i = 0; i < c.g.length; i++) {
@@ -267,22 +307,24 @@ function pickW(pool) {
 }
 function drawRegular() {
   var all = LV[G.lvl].cards;
-  var pool = all.filter(function (c) { return !G.used[c.id] && !vetoed(c); });
+  var pool = all.filter(function (c) { return !G.used[c.id] && !vetoed(c) && consistent(c); });
   if (!pool.length) {
     all.forEach(function (c) { delete G.used[c.id]; });
-    pool = all.filter(function (c) { return !vetoed(c); });
+    pool = all.filter(function (c) { return !vetoed(c) && consistent(c); });
   }
+  if (!pool.length) pool = all.filter(function (c) { return consistent(c); });
   if (!pool.length) pool = all;
   return pickW(pool);
 }
 function drawHot() {
   if (G.turn < 2 || G.turn - G.lastHot < 4 || Math.random() > 0.15) return null;
-  var pool = HOT.filter(function (c) { return (c.min || 1) <= G.lvl && !G.used[c.id] && !vetoed(c); });
+  var pool = HOT.filter(function (c) { return (c.min || 1) <= G.lvl && !G.used[c.id] && !vetoed(c) && consistent(c); });
   if (!pool.length) return null;
   return pickW(pool);
 }
 function pickPenalty() {
-  var pool = PEN.filter(function (c) { return (c.min || 1) <= G.lvl && !vetoed(c); });
+  var pool = PEN.filter(function (c) { return (c.min || 1) <= G.lvl && !vetoed(c) && consistent(c); });
+  if (!pool.length) pool = PEN.filter(function (c) { return !vetoed(c) && consistent(c); });
   if (!pool.length) pool = PEN.filter(function (c) { return !vetoed(c); });
   if (!pool.length) pool = PEN;
   return pickOne(pool);
@@ -306,7 +348,8 @@ function startTurn() {
 }
 function startFinale() {
   G.turn++;
-  var pool = FIN.filter(function (c) { return !vetoed(c); });
+  var pool = FIN.filter(function (c) { return !vetoed(c) && consistent(c); });
+  if (!pool.length) pool = FIN.filter(function (c) { return !vetoed(c); });
   if (!pool.length) pool = FIN;
   G.over = true;
   present(pickOne(pool), 'fin');
@@ -316,6 +359,7 @@ function onNext() {
   if (G.cur && G.cur.kind === 'fin') { endGame(); return; }
   stopTimer();
   vib(15);
+  applyEffects();
   G.player ^= 1;
   var done = G.turn;
   if (G.length > 0 && done >= G.length) { startFinale(); return; }
