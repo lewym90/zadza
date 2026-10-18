@@ -556,24 +556,59 @@ $('btn-bony').onclick = function () { show('bony'); };
 var DI = DATA.dice;
 var D = { lvl: 0, secs: 60, player: 0, n: 0, rolled: false, t: null };
 function diceLvl() { return D.lvl > 0 ? D.lvl : Math.min(5, 1 + Math.floor(D.n / 4)); }
+function dVeto(g) {
+  if (!g || !S.prefs) return false;
+  for (var i = 0; i < g.length; i++)
+    if ((S.prefs[0] && S.prefs[0][g[i]] === 'nie') || (S.prefs[1] && S.prefs[1][g[i]] === 'nie')) return true;
+  return false;
+}
+function wpick(list, lvl, minOf) {
+  var tot = 0, ws = list.map(function (x) { var w = lvl > 2 ? (minOf(x) >= lvl - 1 ? 8 : (minOf(x) >= lvl - 2 ? 1.5 : 0.4)) : 1; tot += w; return w; });
+  var r = Math.random() * tot;
+  for (var i = 0; i < list.length; i++) { r -= ws[i]; if (r <= 0) return list[i]; }
+  return list[list.length - 1];
+}
+function wayOk(w, part, verb, lvl) {
+  if (w.min > lvl || dVeto(w.g)) return false;
+  if (part.self && !w.self) return false;
+  if (verb.once && (w.dur || w.req === 'hard' || w.req === 'deep' || w.req === 'throat' || w.req === 'back' || w.req === 'gen' || w.req === 'free+back')) return false;
+  var r = w.req;
+  if (r === 'eye') return !!part.eye;
+  if (r === 'back') return !!part.back;
+  if (r === 'gen') return !!part.gen && !part.self;
+  if (r === 'hard') return !!verb.h;
+  if (r === 'free') return !verb.m;
+  if (r === 'deep') return !!verb.d && !part.self;
+  if (r === 'throat') return !!part.throat;
+  if (r === 'free+back') return !verb.m && !!part.back && !part.self;
+  return true;
+}
 function diceRoll(player, lvl) {
   var role = player === 0 ? 'm' : 'f';
-  var parts = DI[role].parts.filter(function (p) { return p.min <= lvl; }).map(function (p) { return { p: p.p, v: p.v.slice(), min: p.min }; });
-  var no = function (k) { return S.prefs && ((S.prefs[0] && S.prefs[0][k] === 'nie') || (S.prefs[1] && S.prefs[1][k] === 'nie')); };
-  var noOral = no('oral'), noSpank = no('klapsy'), noPlaces = no('miejsca');
-  parts.forEach(function (p) {
-    if (noOral && p.min >= 3) p.v = p.v.filter(function (v) { return !/liż|ssij|język|całuj|ustami/.test(v); });
-    if (noSpank) p.v = p.v.filter(function (v) { return v !== 'klep'; });
+  var pairs = [];
+  DI[role].parts.forEach(function (p) {
+    if (dVeto(p.g)) return;
+    p.v.forEach(function (v) {
+      if (v.min > lvl || dVeto(v.g)) return;
+      if (S.prefs && v.m && p.gen && ((S.prefs[0] && S.prefs[0].oral === 'nie') || (S.prefs[1] && S.prefs[1].oral === 'nie'))) return;
+      pairs.push({ p: p, v: v });
+    });
   });
-  parts = parts.filter(function (p) { return p.v.length; });
-  var ways = DI.ways.filter(function (w) { return w.min <= lvl; }).map(function (w) { return role === 'f' && w.wf ? w.wf : w.w; });
-  var places = DI.places.filter(function (w) { return !noPlaces || w.home; }).map(function (w) { return w.w; });
-  var part = pickOne(parts), verb = pickOne(part.v), way = pickOne(ways), place = pickOne(places);
-  return { verb: verb, part: part.p, way: way, place: place };
+  var cut = lvl > 2 ? (Math.random() < 0.12 ? lvl - 2 : lvl - 1) : 1;
+  var hi = pairs.filter(function (x) { return x.v.min >= cut; });
+  if (hi.length >= 6) pairs = hi;
+  var pr = wpick(pairs, lvl, function (x) { return x.v.min; });
+  var ways = DI.ways.filter(function (w) { return wayOk(w, pr.p, pr.v, lvl); });
+  var w = wpick(ways, lvl, function (x) { return x.min; });
+  var way = role === 'f' && w.wf ? w.wf : w.w;
+  var noPlaces = S.prefs && ((S.prefs[0] && S.prefs[0].miejsca === 'nie') || (S.prefs[1] && S.prefs[1].miejsca === 'nie'));
+  var places = DI.places.filter(function (x) { return !noPlaces || x.home; });
+  var place = pickOne(places).w;
+  return { verb: pr.v.t, part: pr.p.p, way: way, place: place };
 }
 function sentence(r) {
   var v = r.verb.charAt(0).toUpperCase() + r.verb.slice(1);
-  var w = /^(dopóki|patrząc)/.test(r.way) ? ', ' + r.way : ' ' + r.way;
+  var w = (/^(dopóki|aż|(nie )?\S+ąc\b)/.test(r.way) || r.part.indexOf(', ') >= 0) ? ', ' + r.way : ' ' + r.way;
   return v + ' ' + r.part + w + ', ' + r.place + '.';
 }
 function dStop() { clearInterval(D.t); D.t = null; }
@@ -630,9 +665,9 @@ function doRoll() {
   var els = [$('d0'), $('d1'), $('d2'), $('d3')];
   var vals = [r.verb, r.part, r.way, r.place];
   var pools = [
-    DI[role].parts.reduce(function (a, p) { return a.concat(p.v); }, []),
+    DI[role].parts.reduce(function (a, p) { return a.concat(p.v.filter(function (v) { return v.min <= lvl; }).map(function (v) { return v.t; })); }, []),
     DI[role].parts.map(function (p) { return p.p; }),
-    DI.ways.map(function (w) { return w.w; }),
+    DI.ways.filter(function (w) { return w.min <= lvl; }).map(function (w) { return w.w; }),
     DI.places.map(function (w) { return w.w; })
   ];
   $('dice-say').textContent = '…';
