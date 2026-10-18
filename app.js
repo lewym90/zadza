@@ -552,6 +552,192 @@ $('m-home').onclick = function () { closeSheets(); stopTimer(); show('home'); };
 $('m-end').onclick = function () { closeSheets(); if (confirm('Zakończyć grę teraz?')) endGame(); };
 $('btn-bony').onclick = function () { show('bony'); };
 
+/* ---------- prawda czy wyzwanie ---------- */
+var PC = { lvlSel: 0, skipSel: 3, g: null };
+var PDRESS = ['', 'Ubrani', 'W bieliźnie', 'Nago', 'Nago', 'Nago'];
+function pcwLvl(g) { return g.fixed ? g.fixed : Math.min(5, 1 + Math.floor(g.turn / 6)); }
+function pSync() {
+  qa('#pseg-lvl button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-v') === PC.lvlSel); });
+  qa('#pseg-skip button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-v') === PC.skipSel); });
+  $('pnote-lvl').textContent = PC.lvlSel === 0 ? 'Zaczynacie od Lodu, a co kilka tur robi się goręcej, aż do Zero zasad.' : (PC.lvlSel + '. ' + LV[PC.lvlSel].name + ' - ' + LV[PC.lvlSel].sub);
+}
+$('go-pcw').onclick = function () {
+  var s = store.get('pcw', null); if (s) { PC.lvlSel = s.l; PC.skipSel = s.s; }
+  document.body.setAttribute('data-role', 'm');
+  show('pcwset'); document.body.setAttribute('data-level', 1); pSync();
+};
+$('pseg-lvl').onclick = function (e) { var b = e.target.closest('button'); if (b) { PC.lvlSel = +b.getAttribute('data-v'); pSync(); } };
+$('pseg-skip').onclick = function (e) { var b = e.target.closest('button'); if (b) { PC.skipSel = +b.getAttribute('data-v'); pSync(); } };
+$('btn-pcw-start').onclick = function () {
+  store.set('pcw', { l: PC.lvlSel, s: PC.skipSel });
+  PC.g = { fixed: PC.lvlSel, skips: [PC.skipSel, PC.skipSel], player: rnd(2), turn: 0, used: {}, cur: null, ejAt: -99, lastLvl: 0 };
+  show('pcw'); pcwTurn();
+};
+function pcwPool(type, p, lvl) {
+  var g = PC.g, role = p === 0 ? 'm' : 'f';
+  var base = DATA.pcw[type].filter(function (x) {
+    return (x.r === 'b' || x.r === role) && !dVeto(x.g) && !(x.ej && g.turn - g.ejAt < 6);
+  });
+  var key = function (x) { return type + ':' + x.t; };
+  var fresh = base.filter(function (x) { return !g.used[key(x)]; });
+  var pick = function (arr, lv) { return arr.filter(function (x) { return x.l === lv && (!x.x || lv === lvl); }); };
+  var pool = pick(fresh, lvl);
+  if (lvl > 1 && Math.random() < 0.3) { var lo = pick(fresh, lvl - 1); if (lo.length) pool = lo; }
+  for (var l = lvl - 1; !pool.length && l >= 1; l--) pool = pick(fresh, l);
+  if (!pool.length) { base.forEach(function (x) { if (x.l >= Math.max(1, lvl - 1) && x.l <= lvl) delete g.used[key(x)]; }); pool = base.filter(function (x) { return x.l === lvl; }); }
+  if (!pool.length) pool = base;
+  return pool.length ? pickOne(pool) : null;
+}
+function pcwTurn() {
+  var g = PC.g, p = g.player, lvl = pcwLvl(g);
+  stopP();
+  document.body.setAttribute('data-role', p === 0 ? 'm' : 'f');
+  document.body.setAttribute('data-level', lvl);
+  $('pcw-r').textContent = p === 0 ? 'on' : 'ona';
+  $('pcw-nm').textContent = S.names[p];
+  $('pcw-lvl').textContent = lvl + '. ' + LV[lvl].name;
+  $('pcw-dress').textContent = 'Teraz: ' + PDRESS[lvl].toLowerCase() + '.';
+  if (lvl !== g.lastLvl) { if (g.lastLvl) toast('Poziom: ' + LV[lvl].name + '. ' + PDRESS[lvl] + '.'); g.lastLvl = lvl; }
+  $('pcw-ask').textContent = S.names[p] + ', wybierasz.';
+  $('pcw-choose').hidden = false; $('pcw-card').hidden = true;
+}
+var ptm = null;
+function stopP() { clearInterval(ptm); ptm = null; }
+function pcwShow(kind, item) {
+  var g = PC.g, p = g.player;
+  g.cur = { kind: kind, item: item };
+  if (kind !== 'k') g.used[kind + ':' + item.t] = 1;
+  if (item.ej) g.ejAt = g.turn;
+  $('pcw-choose').hidden = true; $('pcw-card').hidden = false;
+  $('pcw-kind').textContent = kind === 'p' ? 'Prawda' : kind === 'w' ? 'Wyzwanie' : 'Kara';
+  $('pcw-tx').textContent = item.t;
+  $('pcw-tm').hidden = !item.s;
+  $('pcw-ttxt').textContent = item.s ? fmt(item.s) : ''; $('pcw-fill').style.transform = 'scaleX(1)';
+  $('pcw-tstart').textContent = 'Start'; $('pcw-tstart').hidden = false;
+  var left = g.skips[p];
+  $('pcw-skip').hidden = kind === 'k';
+  $('pcw-skip').innerHTML = left > 0 ? 'Pomiń <em>' + left + '</em>' : 'Pomiń (kara)';
+  $('pcw-done').textContent = kind === 'p' ? 'Powiedziane' : 'Zrobione';
+  vib(25);
+}
+function pcwPick(kind) {
+  var g = PC.g, it = pcwPool(kind, g.player, pcwLvl(g));
+  if (!it) { toast('Brak kart'); return; }
+  pcwShow(kind, it);
+}
+$('pcw-t').onclick = function () { pcwPick('p'); };
+$('pcw-d').onclick = function () { pcwPick('w'); };
+$('pcw-r2').onclick = function () { pcwPick(Math.random() < 0.5 ? 'p' : 'w'); };
+$('pcw-tstart').onclick = function () {
+  var it = PC.g.cur.item, left = it.s, total = it.s;
+  stopP(); $('pcw-tstart').hidden = true;
+  var upd = function () { $('pcw-fill').style.transform = 'scaleX(' + (left / total) + ')'; $('pcw-ttxt').textContent = left > 0 ? fmt(left) : 'Koniec czasu'; };
+  upd();
+  ptm = setInterval(function () { left--; upd(); if (left <= 0) { stopP(); beep(); vib([200, 100, 200]); } }, 1000);
+};
+function pcwNext() {
+  var g = PC.g; stopP();
+  g.turn++; g.player = 1 - g.player; pcwTurn();
+}
+$('pcw-done').onclick = pcwNext;
+$('pcw-skip').onclick = function () {
+  var g = PC.g, p = g.player;
+  if (g.skips[p] > 0) { g.skips[p]--; pcwNext(); return; }
+  var lvl = pcwLvl(g);
+  var pool = DATA.pcw.k.filter(function (x) { return x.l <= lvl && x.l >= Math.max(2, lvl - 1) && !dVeto(x.g); });
+  if (!pool.length) pool = DATA.pcw.k.filter(function (x) { return x.l <= lvl && !dVeto(x.g); });
+  if (!pool.length) { pcwNext(); return; }
+  pcwShow('k', pickOne(pool));
+};
+$('pcw-end').onclick = function () { if (confirm('Zakończyć grę?')) { stopP(); PC.g = null; show('choose'); } };
+
+/* ---------- fantazje ---------- */
+var FS = { pi: 0, v: [{}, {}] };
+function fantStart(pi) {
+  FS.pi = pi;
+  $('fsel-hd').textContent = 'Fantazje: ' + S.names[pi];
+  var h = '';
+  DATA.fant.forEach(function (f) {
+    h += '<div class="row" data-k="' + f.id + '"><span class="t">' + esc(f.t) + '<small>' + esc(f.z) + '</small></span><div class="tri">' +
+      '<button data-v="tak">Tak</button><button data-v="moze">Może</button><button data-v="nie">Nie</button></div></div>';
+    if (!FS.v[pi][f.id]) FS.v[pi][f.id] = 'nie';
+  });
+  $('fsel-rows').innerHTML = h;
+  fSyncRows();
+  document.body.setAttribute('data-role', pi === 0 ? 'm' : 'f');
+  show('fsel'); document.body.setAttribute('data-level', 3);
+}
+function fSyncRows() {
+  qa('#fsel-rows .row').forEach(function (r) {
+    var v = FS.v[FS.pi][r.getAttribute('data-k')];
+    qa('button', r).forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-v') === v); });
+  });
+}
+$('fsel-rows').onclick = function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  FS.v[FS.pi][b.closest('.row').getAttribute('data-k')] = b.getAttribute('data-v'); fSyncRows();
+};
+$('go-fant').onclick = function () { FS = { pi: 0, v: [{}, {}] }; fantStart(0); };
+$('btn-fsel-done').onclick = function () {
+  if (FS.pi === 0) {
+    $('fhand-name').textContent = S.names[1];
+    document.body.setAttribute('data-role', 'f');
+    show('fhand');
+  } else fReveal();
+};
+$('btn-fhand-go').onclick = function () { fantStart(1); };
+var FR = { seen: [], cur: -1 };
+function fTier(f) {
+  var a = FS.v[0][f.id], b = FS.v[1][f.id];
+  if (a === 'nie' || b === 'nie') return 0;
+  if (a === 'tak' && b === 'tak') return 3;
+  if (a === 'tak' || b === 'tak') return 2;
+  return 1;
+}
+function fReveal() {
+  FR = { seen: [], cur: -1 };
+  var all = DATA.fant.filter(function (f) { return fTier(f) > 0; });
+  var t3 = all.filter(function (f) { return fTier(f) === 3; }).length;
+  var t2 = all.filter(function (f) { return fTier(f) === 2; }).length;
+  var t1 = all.length - t3 - t2;
+  $('fr-sum').textContent = all.length ? ('Oboje chcecie: ' + t3 + '. Jedno chce, drugie się waha: ' + t2 + '. Oboje „może”: ' + t1 + '.') : 'Nie macie wspólnych fantazji. Wróćcie, zmieńcie odpowiedzi albo zagrajcie w coś innego.';
+  $('fr-card').hidden = true;
+  $('btn-fdraw').hidden = !all.length;
+  var h = '';
+  all.sort(function (a, b) { return fTier(b) - fTier(a); }).forEach(function (f) {
+    var t = fTier(f);
+    h += '<button data-i="' + f.id + '"><span>' + esc(f.t) + '</span><em>' + (t === 3 ? 'oboje tak' : t === 2 ? 'ktoś bardzo chce' : 'może') + '</em></button>';
+  });
+  $('fr-list').innerHTML = h; $('fr-lab').hidden = !all.length;
+  document.body.setAttribute('data-role', 'f');
+  show('freveal'); document.body.setAttribute('data-level', 4);
+}
+function fShow(id) {
+  var f = DATA.fant[id]; if (!f) return;
+  FR.cur = id;
+  $('fr-name').textContent = f.t;
+  var fl = ''; for (var i = 0; i < 5; i++) fl += '<i class="' + (i < f.l ? 'on' : '') + '"></i>';
+  $('fr-heat').innerHTML = fl;
+  $('fr-z').textContent = f.z;
+  $('fr-on-l').textContent = S.names[0] + ' (on)'; $('fr-ona-l').textContent = S.names[1] + ' (ona)';
+  $('fr-on').textContent = f.on; $('fr-ona').textContent = f.ona;
+  $('fr-say').textContent = f.say;
+  $('fr-st').innerHTML = f.st.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('');
+  $('fr-fin').textContent = f.fin;
+  $('fr-card').hidden = false;
+  document.body.setAttribute('data-level', f.l);
+  try { $('fr-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+}
+$('btn-fdraw').onclick = function () {
+  var all = DATA.fant.filter(function (f) { return fTier(f) > 0; });
+  var fresh = all.filter(function (f) { return FR.seen.indexOf(f.id) < 0; });
+  if (!fresh.length) { FR.seen = []; fresh = all.filter(function (f) { return f.id !== FR.cur; }); if (!fresh.length) fresh = all; }
+  var top = Math.max.apply(null, fresh.map(fTier));
+  var pool = fresh.filter(function (f) { return fTier(f) === top; });
+  var f = pickOne(pool); FR.seen.push(f.id); vib(20); fShow(f.id);
+};
+$('fr-list').onclick = function (e) { var b = e.target.closest('button'); if (b) fShow(+b.getAttribute('data-i')); };
+
 /* ---------- kamasutra ---------- */
 var KM = { cat: '', cur: -1, seen: [] };
 function kList() {

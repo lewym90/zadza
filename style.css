@@ -343,3 +343,19 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 .klist button em{font-family:var(--body,inherit);font-style:normal;font-weight:400;font-size:.74rem;color:var(--foil);opacity:.8}
 .klist button.on{box-shadow:inset 0 0 0 2px #ff5f7e}
 #s-kama{gap:14px}
+
+.pcw-tx{font-family:var(--display);font-weight:500;font-size:1.38rem;line-height:1.42;color:#fff3ee;text-wrap:pretty}
+#pcw-card{gap:14px}
+#pcw-tm{display:flex;flex-direction:column;gap:8px;align-items:center}
+#pcw-tm .tmrbar{width:100%;margin:0}
+#pcw-tm .tmrbar i{transform:scaleX(1);transition:transform 1s linear}
+.row .t small{display:block;font-size:.78rem;opacity:.7;margin-top:2px;font-weight:400}
+.frole{border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.05)}
+.frole.m{box-shadow:inset 3px 0 0 #ff8a4a}.frole.f{box-shadow:inset 3px 0 0 #ff5f9a}
+.frole b{font-family:var(--display);font-style:italic;font-size:1.05rem}
+.frole p{font-size:.98rem;line-height:1.45;margin-top:2px}
+.fsteps{padding-left:1.3em;display:flex;flex-direction:column;gap:8px;font-size:1rem;line-height:1.45;color:#fff3ee}
+#fr-heat{display:flex;gap:4px;flex:none}
+#fr-heat i{width:9px;height:18px;border-radius:5px;background:rgba(255,211,196,.14)}
+#fr-heat i.on{background:linear-gradient(180deg,#ff9a6a,#e0123c)}
+#s-freveal,#s-fsel,#s-pcw{gap:14px}

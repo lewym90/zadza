@@ -15,8 +15,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="fonts.css?v=202610182006">
-<link rel="stylesheet" href="style.css?v=202610182006">
+<link rel="stylesheet" href="fonts.css?v=202610182018">
+<link rel="stylesheet" href="style.css?v=202610182018">
 </head>
 <body data-level="1" data-role="m">
 
@@ -107,6 +107,8 @@
     <div class="stack">
       <button class="tier on" id="go-cards" style="--tc:255,40,90"><span class="n">♠</span><div><b>Karty</b><span>Talia zadań, która rośnie w temperaturę. Dłuższa gra.</span></div></button>
       <button class="tier on" id="go-kama" style="--tc:200,10,40"><span class="n">♥</span><div><b>Kamasutra</b><span>Pozycje z rysunkami i opisami. Losujcie nową do wypróbowania.</span></div></button>
+      <button class="tier on" id="go-pcw" style="--tc:230,40,90"><span class="n">?</span><div><b>Prawda czy Wyzwanie</b><span>Szczere wyznania i brudne zadania. Im dalej, tym ostrzej.</span></div></button>
+      <button class="tier on" id="go-fant" style="--tc:170,10,70"><span class="n">✦</span><div><b>Fantazje</b><span>Tajne wybory, a potem scenariusze tylko z tego, czego chcecie oboje.</span></div></button>
       <button class="tier on" id="go-dice" style="--tc:255,110,60"><span class="n">⚄</span><div><b>Kostki</b><span>Cztery kostki, jedno zadanie i czas. Krótka, szybka gra.</span></div></button>
     </div>
     <div class="grow"></div>
@@ -148,6 +150,93 @@
     </div>
     <div class="grow"></div>
     <button class="btn latex" id="btn-cards-go">Dalej</button>
+  </section>
+
+  <!-- PRAWDA CZY WYZWANIE -->
+  <section class="scr" id="s-pcwset">
+    <button class="back-l" data-go="choose"><svg><use href="#i-back"/></svg>Wróć</button>
+    <h2 class="hd">Prawda czy Wyzwanie</h2>
+    <div class="stack tight">
+      <span class="lab">Temperatura</span>
+      <div class="seg" id="pseg-lvl">
+        <button data-v="0">Rośnie</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button>
+      </div>
+      <p class="note" id="pnote-lvl"></p>
+    </div>
+    <div class="stack tight">
+      <span class="lab">Pominięcia na osobę</span>
+      <div class="seg" id="pseg-skip">
+        <button data-v="1">1</button><button data-v="3">3</button><button data-v="5">5</button>
+      </div>
+      <p class="note">Po wyczerpaniu limitu pominięcie kończy się karą.</p>
+    </div>
+    <div class="grow"></div>
+    <button class="btn latex" id="btn-pcw-start">Zaczynamy</button>
+  </section>
+  <section class="scr" id="s-pcw">
+    <div class="top">
+      <button class="ico" id="pcw-end" aria-label="Zakończ"><svg><use href="#i-back"/></svg></button>
+      <div class="heat"><span id="pcw-lvl">1. Lód</span></div>
+      <span class="ico" style="opacity:0"></span>
+    </div>
+    <p class="note" id="pcw-dress" style="text-align:center"></p>
+    <div class="who"><span class="r" id="pcw-r">on</span><span class="nm" id="pcw-nm"></span></div>
+    <div id="pcw-choose" class="stack">
+      <p class="sub" id="pcw-ask">Wybierz.</p>
+      <button class="btn latex" id="pcw-t">Prawda</button>
+      <button class="btn latex" id="pcw-d">Wyzwanie</button>
+      <button class="chip" id="pcw-r2">Niech gra wybierze</button>
+    </div>
+    <div id="pcw-card" class="kcard" hidden>
+      <span class="lab" id="pcw-kind">Prawda</span>
+      <p class="pcw-tx" id="pcw-tx"></p>
+      <div id="pcw-tm" hidden>
+        <div class="tmrbar" id="pcw-bar"><i id="pcw-fill"></i></div>
+        <button class="chip" id="pcw-tstart">Start</button>
+        <span class="note" id="pcw-ttxt"></span>
+      </div>
+      <div class="acts">
+        <button class="btn ghost" id="pcw-skip">Pomiń</button>
+        <button class="btn latex" id="pcw-done">Zrobione</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FANTAZJE -->
+  <section class="scr" id="s-fsel">
+    <h2 class="hd" id="fsel-hd">Fantazje</h2>
+    <p class="sub">Zaznacz, na co masz ochotę. Partner nie zobaczy twoich odpowiedzi. Pokażą się tylko wspólne, a „nie” kasuje fantazję.</p>
+    <div class="rows" id="fsel-rows"></div>
+    <button class="btn latex" id="btn-fsel-done">Gotowe</button>
+  </section>
+  <section class="scr hand" id="s-fhand">
+    <div class="grow"></div>
+    <p class="tag">Oddaj telefon</p>
+    <h2 class="big" id="fhand-name"></h2>
+    <p class="sub">Teraz wybiera druga osoba. Wybory pierwszej zostają ukryte.</p>
+    <div class="grow"></div>
+    <button class="btn latex" id="btn-fhand-go">Jestem gotowa</button>
+  </section>
+  <section class="scr" id="s-freveal">
+    <h2 class="hd">Wasze fantazje</h2>
+    <p class="note" id="fr-sum"></p>
+    <div class="kcard" id="fr-card" hidden>
+      <div class="khead"><b id="fr-name"></b><span id="fr-heat"></span></div>
+      <p class="kt" id="fr-z"></p>
+      <div class="frole m"><b id="fr-on-l">On</b><p id="fr-on"></p></div>
+      <div class="frole f"><b id="fr-ona-l">Ona</b><p id="fr-ona"></p></div>
+      <span class="lab">Zanim zaczniecie</span>
+      <p class="kd" id="fr-say"></p>
+      <span class="lab">Scena</span>
+      <ol class="fsteps" id="fr-st"></ol>
+      <span class="lab">Finał</span>
+      <p class="kd" id="fr-fin"></p>
+      <p class="note">Słowo bezpieczeństwa działa zawsze. Zaczynajcie, kiedy oboje powiecie „gotowe”.</p>
+    </div>
+    <button class="btn latex" id="btn-fdraw">Losuj fantazję</button>
+    <span class="lab" id="fr-lab">Wspólne</span>
+    <div class="klist" id="fr-list"></div>
+    <button class="chip" data-go="choose">Wróć do wyboru gry</button>
   </section>
 
   <!-- KAMASUTRA -->
@@ -326,7 +415,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="data.js?v=202610182006"></script>
-<script src="app.js?v=202610182006"></script>
+<script src="data.js?v=202610182018"></script>
+<script src="app.js?v=202610182018"></script>
 </body>
 </html>
