@@ -15,8 +15,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="fonts.css?v=202610181949">
-<link rel="stylesheet" href="style.css?v=202610181949">
+<link rel="stylesheet" href="fonts.css?v=202610182006">
+<link rel="stylesheet" href="style.css?v=202610182006">
 </head>
 <body data-level="1" data-role="m">
 
@@ -106,6 +106,7 @@
     <h2 class="hd">W co gracie?</h2>
     <div class="stack">
       <button class="tier on" id="go-cards" style="--tc:255,40,90"><span class="n">♠</span><div><b>Karty</b><span>Talia zadań, która rośnie w temperaturę. Dłuższa gra.</span></div></button>
+      <button class="tier on" id="go-kama" style="--tc:200,10,40"><span class="n">♥</span><div><b>Kamasutra</b><span>Pozycje z rysunkami i opisami. Losujcie nową do wypróbowania.</span></div></button>
       <button class="tier on" id="go-dice" style="--tc:255,110,60"><span class="n">⚄</span><div><b>Kostki</b><span>Cztery kostki, jedno zadanie i czas. Krótka, szybka gra.</span></div></button>
     </div>
     <div class="grow"></div>
@@ -147,6 +148,22 @@
     </div>
     <div class="grow"></div>
     <button class="btn latex" id="btn-cards-go">Dalej</button>
+  </section>
+
+  <!-- KAMASUTRA -->
+  <section class="scr" id="s-kama">
+    <button class="back-l" data-go="choose"><svg><use href="#i-back"/></svg>Wróć</button>
+    <h2 class="hd">Kamasutra</h2>
+    <div class="kchips" id="k-cats"></div>
+    <div class="kcard" id="k-card">
+      <div class="kfig" id="k-fig"></div>
+      <div class="khead"><b id="k-name"></b><span id="k-heat"></span></div>
+      <p class="kd" id="k-d"></p>
+      <p class="kt" id="k-t"></p>
+    </div>
+    <button class="btn latex" id="btn-kdraw">Losuj pozycję</button>
+    <span class="lab" id="k-list-lab">Wszystkie pozycje</span>
+    <div class="klist" id="k-list"></div>
   </section>
 
   <!-- KOSTKI -->
@@ -309,7 +326,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="data.js?v=202610181949"></script>
-<script src="app.js?v=202610181949"></script>
+<script src="data.js?v=202610182006"></script>
+<script src="app.js?v=202610182006"></script>
 </body>
 </html>

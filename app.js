@@ -552,6 +552,66 @@ $('m-home').onclick = function () { closeSheets(); stopTimer(); show('home'); };
 $('m-end').onclick = function () { closeSheets(); if (confirm('Zakończyć grę teraz?')) endGame(); };
 $('btn-bony').onclick = function () { show('bony'); };
 
+/* ---------- kamasutra ---------- */
+var KM = { cat: '', cur: -1, seen: [] };
+function kList() {
+  return DATA.kama.filter(function (k) { return !dVeto(k.g) && (!KM.cat || k.c === KM.cat); });
+}
+function kCats() {
+  var cs = [], seen = {};
+  DATA.kama.forEach(function (k) { if (!dVeto(k.g) && !seen[k.c]) { seen[k.c] = 1; cs.push(k.c); } });
+  var h = '<button data-c="" class="' + (!KM.cat ? 'on' : '') + '">Wszystkie</button>';
+  cs.forEach(function (c) { h += '<button data-c="' + esc(c) + '" class="' + (KM.cat === c ? 'on' : '') + '">' + esc(c) + '</button>'; });
+  $('k-cats').innerHTML = h;
+}
+function kShow(id) {
+  var k = DATA.kama[id]; if (!k) return;
+  KM.cur = id;
+  $('k-fig').innerHTML = DATA.kamaSvg[k.p];
+  $('k-name').textContent = k.n;
+  var fl = ''; for (var i = 0; i < 5; i++) fl += '<i class="' + (i < k.l ? 'on' : '') + '"></i>';
+  $('k-heat').innerHTML = fl;
+  $('k-d').textContent = k.d; $('k-t').textContent = k.t;
+  $('k-card').hidden = false;
+  document.body.setAttribute('data-level', k.l);
+  qa('#k-list button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-i') === id); });
+}
+function kBuild() {
+  kCats();
+  var h = '';
+  kList().forEach(function (k) {
+    h += '<button data-i="' + k.id + '" class="' + (KM.cur === k.id ? 'on' : '') + '"><span>' + esc(k.n) + '</span><em>' + esc(k.c) + '</em></button>';
+  });
+  $('k-list').innerHTML = h;
+}
+function kDraw() {
+  var l = kList(); if (!l.length) return;
+  var pool = l.filter(function (k) { return KM.seen.indexOf(k.id) < 0 && k.id !== KM.cur; });
+  if (!pool.length) { KM.seen = []; pool = l.filter(function (k) { return k.id !== KM.cur; }); if (!pool.length) pool = l; }
+  var k = pickOne(pool);
+  KM.seen.push(k.id); vib(20);
+  kShow(k.id);
+  var el = $('k-card'); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+}
+$('go-kama').onclick = function () {
+  KM.cat = ''; KM.cur = -1; KM.seen = [];
+  document.body.setAttribute('data-role', 'f');
+  $('k-card').hidden = true;
+  show('kama'); document.body.setAttribute('data-level', 3);
+  kBuild();
+};
+$('k-cats').onclick = function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  KM.cat = b.getAttribute('data-c'); KM.cur = -1; $('k-card').hidden = true; kBuild();
+};
+$('k-list').onclick = function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  kShow(+b.getAttribute('data-i'));
+  try { $('k-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e2) {}
+};
+$('btn-kdraw').onclick = kDraw;
+
 /* ---------- kostki (osobna gra) ---------- */
 var DI = DATA.dice;
 var D = { lvl: 0, secs: 60, player: 0, n: 0, rolled: false, t: null };
@@ -571,6 +631,7 @@ function wpick(list, lvl, minOf) {
 function wayOk(w, part, verb, lvl) {
   if (w.min > lvl || dVeto(w.g)) return false;
   if (part.self && !w.self) return false;
+  if (w.ex && new RegExp(w.ex).test(verb.t + ' ' + part.p)) return false;
   if (verb.once && (w.dur || w.req === 'hard' || w.req === 'deep' || w.req === 'throat' || w.req === 'back' || w.req === 'gen' || w.req === 'free+back')) return false;
   var r = w.req;
   if (r === 'eye') return !!part.eye;
@@ -580,6 +641,7 @@ function wayOk(w, part, verb, lvl) {
   if (r === 'free') return !verb.m;
   if (r === 'deep') return !!verb.d && !part.self;
   if (r === 'throat') return !!part.throat;
+  if (r === 'free+eye') return !verb.m && !!part.eye && !part.self;
   if (r === 'free+back') return !verb.m && !!part.back && !part.self;
   return true;
 }

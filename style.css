@@ -321,3 +321,25 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 #s-dice #dice-setup{display:flex;flex-direction:column;gap:18px;flex:1}
 #s-dice #dice-play[hidden],#s-dice #dice-setup[hidden]{display:none}
 #dtmr{margin:0}
+
+.kchips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;-webkit-overflow-scrolling:touch}
+.kchips button{flex:none;min-height:38px;padding:0 14px;border-radius:999px;background:rgba(255,211,196,.08);box-shadow:inset 0 0 0 1px rgba(255,211,196,.18);font-size:.92rem;white-space:nowrap}
+.kchips button.on{background:linear-gradient(180deg,#ff5f7e,#b00c2e);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.kcard{border-radius:22px;padding:14px 16px 16px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));box-shadow:inset 0 0 0 1px rgba(255,211,196,.16);display:flex;flex-direction:column;gap:10px;scroll-margin-top:12px}
+.kcard[hidden]{display:none}
+.kcard.pop{animation:kpop .35s ease-out}
+@keyframes kpop{from{opacity:.2;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.kfig{border-radius:16px;background:#1a0a12;aspect-ratio:1.6;overflow:hidden}
+.kfig svg{display:block;width:100%;height:100%}
+.khead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.khead b{font-family:var(--display);font-style:italic;font-weight:700;font-size:1.5rem;line-height:1.1;color:var(--skin)}
+#k-heat{display:flex;gap:4px;flex:none}
+#k-heat i{width:9px;height:18px;border-radius:5px;background:rgba(255,211,196,.14)}
+#k-heat i.on{background:linear-gradient(180deg,#ff9a6a,#e0123c)}
+.kd{font-size:1.02rem;line-height:1.45;color:#fff3ee}
+.kt{font-size:.96rem;line-height:1.45;color:var(--foil);font-style:italic}
+.klist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.klist button{min-height:56px;border-radius:14px;padding:8px 12px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:2px;background:rgba(255,211,196,.06);box-shadow:inset 0 0 0 1px rgba(255,211,196,.14);font-family:var(--display);font-style:italic;font-weight:700;font-size:1rem;line-height:1.15}
+.klist button em{font-family:var(--body,inherit);font-style:normal;font-weight:400;font-size:.74rem;color:var(--foil);opacity:.8}
+.klist button.on{box-shadow:inset 0 0 0 2px #ff5f7e}
+#s-kama{gap:14px}
