@@ -50,7 +50,7 @@ function show(name) {
   if (name === 'fav') renderFav();
   if (name === 'game') document.body.setAttribute('data-level', G.lvl);
   else if (name !== 'up') document.body.setAttribute('data-level', name === 'end' ? 4 : 1);
-  if (name === 'game') wake(); else if (name === 'home' || name === 'end') unwake();
+  if (name === 'game' || name === 'dice') wake(); else if (name === 'home' || name === 'end') unwake();
 }
 document.addEventListener('click', function (e) {
   var t = e.target.closest ? e.target.closest('[data-go]') : null;
@@ -135,7 +135,12 @@ $('btn-setup-go').onclick = function () {
   save('names');
   S.set = { mode: CFG.mode, level: CFG.level, length: CFG.length, skips: CFG.skips };
   save('set');
-  if (!S.prefs || CFG.repref) startPrefs(0); else startDraw();
+  if (!S.prefs || CFG.repref) startPrefs(0); else show('choose');
+};
+$('go-cards').onclick = function () { syncSetup(); show('cards'); };
+$('btn-cards-go').onclick = function () {
+  S.set = { mode: CFG.mode, level: CFG.level, length: CFG.length, skips: CFG.skips };
+  save('set'); startDraw();
 };
 
 /* ---------- wybory tak / może / nie ---------- */
@@ -175,7 +180,7 @@ $('btn-pref-done').onclick = function () {
     $('btn-hand-go').textContent = 'Jestem gotowa';
     document.body.setAttribute('data-role', 'f');
     show('hand');
-  } else { startDraw(); }
+  } else { show('choose'); }
 };
 $('btn-hand-go').onclick = function () { startPrefs(1); };
 
@@ -547,15 +552,15 @@ $('m-home').onclick = function () { closeSheets(); stopTimer(); show('home'); };
 $('m-end').onclick = function () { closeSheets(); if (confirm('Zakończyć grę teraz?')) endGame(); };
 $('btn-bony').onclick = function () { show('bony'); };
 
-/* ---------- kostki ---------- */
+/* ---------- kostki (osobna gra) ---------- */
 var DI = DATA.dice;
-function diceRoll() {
-  var role = G.player === 0 ? 'm' : 'f';
-  var lvl = G.lvl;
+var D = { lvl: 0, secs: 60, player: 0, n: 0, rolled: false, t: null };
+function diceLvl() { return D.lvl > 0 ? D.lvl : Math.min(5, 1 + Math.floor(D.n / 4)); }
+function diceRoll(player, lvl) {
+  var role = player === 0 ? 'm' : 'f';
   var parts = DI[role].parts.filter(function (p) { return p.min <= lvl; }).map(function (p) { return { p: p.p, v: p.v.slice(), min: p.min }; });
-  var noOral = S.prefs && ((S.prefs[0] && S.prefs[0].oral === 'nie') || (S.prefs[1] && S.prefs[1].oral === 'nie'));
-  var noSpank = S.prefs && ((S.prefs[0] && S.prefs[0].klapsy === 'nie') || (S.prefs[1] && S.prefs[1].klapsy === 'nie'));
-  var noPlaces = S.prefs && ((S.prefs[0] && S.prefs[0].miejsca === 'nie') || (S.prefs[1] && S.prefs[1].miejsca === 'nie'));
+  var no = function (k) { return S.prefs && ((S.prefs[0] && S.prefs[0][k] === 'nie') || (S.prefs[1] && S.prefs[1][k] === 'nie')); };
+  var noOral = no('oral'), noSpank = no('klapsy'), noPlaces = no('miejsca');
   parts.forEach(function (p) {
     if (noOral && p.min >= 3) p.v = p.v.filter(function (v) { return !/liż|ssij|język|całuj|ustami/.test(v); });
     if (noSpank) p.v = p.v.filter(function (v) { return v !== 'klep'; });
@@ -571,13 +576,59 @@ function sentence(r) {
   var w = /^(dopóki|patrząc)/.test(r.way) ? ', ' + r.way : ' ' + r.way;
   return v + ' ' + r.part + w + ', ' + r.place + '.';
 }
+function dStop() { clearInterval(D.t); D.t = null; }
+var DNOTE = ['Zaczynacie łagodnie, co 4 rzuty robi się goręcej.', 'Lód', 'Iskra', 'Żar', 'Płomień', 'Zero zasad'];
+function dSync() {
+  qa('#dseg-lvl button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-v') === D.lvl); });
+  qa('#dseg-time button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-v') === D.secs); });
+  $('dnote-lvl').textContent = D.lvl === 0 ? DNOTE[0] : (D.lvl + '. ' + LV[D.lvl].name + ' - ' + LV[D.lvl].sub);
+}
+$('go-dice').onclick = function () {
+  var s = store.get('dice'); if (s) { D.lvl = s.lvl; D.secs = s.secs; }
+  $('dice-setup').hidden = false; $('dice-play').hidden = true; $('dice-back').hidden = false;
+  document.body.setAttribute('data-role', 'm');
+  show('dice'); document.body.setAttribute('data-level', 1);
+  dSync();
+};
+$('dseg-lvl').onclick = function (e) { var b = e.target.closest('button'); if (b) { D.lvl = +b.getAttribute('data-v'); dSync(); } };
+$('dseg-time').onclick = function (e) { var b = e.target.closest('button'); if (b) { D.secs = +b.getAttribute('data-v'); dSync(); } };
+function dPlayer() {
+  var role = D.player === 0 ? 'm' : 'f';
+  document.body.setAttribute('data-role', role);
+  document.body.setAttribute('data-level', diceLvl());
+  $('dp-r').textContent = D.player === 0 ? 'on' : 'ona';
+  $('dp-nm').textContent = S.names[D.player];
+  $('dp-info').textContent = (D.lvl === 0 ? diceLvl() + '. ' + LV[diceLvl()].name + ' · ' : '') + 'Rzut ' + (D.n + 1);
+}
+function dReset() {
+  dStop(); D.rolled = false;
+  ['d0', 'd1', 'd2', 'd3'].forEach(function (id) { $(id).querySelector('b').textContent = '?'; });
+  $('dice-say').textContent = 'Rzuć kostkami.';
+  $('dtmr').hidden = true; $('dtmr-txt').textContent = '';
+  $('btn-roll').textContent = 'Rzuć kostkami';
+  dPlayer();
+}
+$('btn-dice-start').onclick = function () {
+  try { store.set('dice', { lvl: D.lvl, secs: D.secs }); } catch (e) {}
+  D.player = rnd(2); D.n = 0;
+  $('dice-setup').hidden = true; $('dice-play').hidden = false; $('dice-back').hidden = true;
+  dReset();
+};
+function dTimer() {
+  if (!D.secs) return;
+  var left = D.secs, total = D.secs;
+  $('dtmr').hidden = false;
+  var upd = function () { $('dtmr-fill').style.transform = 'scaleX(' + (left / total) + ')'; $('dtmr-txt').textContent = left > 0 ? fmt(left) : 'Czas minął. Zmiana.'; };
+  upd();
+  D.t = setInterval(function () { left--; upd(); if (left <= 0) { dStop(); beep(); vib([200, 100, 200]); } }, 1000);
+}
 var rolling = false;
 function doRoll() {
   if (rolling) return; rolling = true;
-  var r = diceRoll();
+  var lvl = diceLvl(), role = D.player === 0 ? 'm' : 'f';
+  var r = diceRoll(D.player, lvl);
   var els = [$('d0'), $('d1'), $('d2'), $('d3')];
   var vals = [r.verb, r.part, r.way, r.place];
-  var role = G.player === 0 ? 'm' : 'f';
   var pools = [
     DI[role].parts.reduce(function (a, p) { return a.concat(p.v); }, []),
     DI[role].parts.map(function (p) { return p.p; }),
@@ -590,17 +641,19 @@ function doRoll() {
     var n = 0, stop = 8 + i * 4;
     var iv = setInterval(function () {
       n++; d.querySelector('b').textContent = pickOne(pools[i]);
-      if (n >= stop) { clearInterval(iv); d.classList.remove('roll'); d.querySelector('b').textContent = vals[i]; vib(15); if (i === 3) { rolling = false; $('dice-say').textContent = sentence(r); } }
+      if (n >= stop) {
+        clearInterval(iv); d.classList.remove('roll'); d.querySelector('b').textContent = vals[i]; vib(15);
+        if (i === 3) { rolling = false; $('dice-say').textContent = sentence(r); D.rolled = true; $('btn-roll').textContent = 'Dalej: ' + S.names[1 - D.player]; dTimer(); }
+      }
     }, 70);
   });
 }
-$('btn-dice').onclick = function () {
-  $('dice-who').textContent = 'Kostki dla: ' + G.names[G.player];
-  ['d0', 'd1', 'd2', 'd3'].forEach(function (id) { $(id).querySelector('b').textContent = '?'; });
-  $('dice-say').textContent = 'Rzuć kostkami.';
-  openSheet('sh-dice');
+$('btn-roll').onclick = function () {
+  if (rolling) return;
+  if (!D.rolled) { doRoll(); return; }
+  D.player = 1 - D.player; D.n++; dReset();
 };
-$('btn-roll').onclick = doRoll;
+$('dice-end').onclick = function () { dStop(); show('choose'); };
 
 /* ---------- bony i ulubione ---------- */
 function dateStr(t) { try { return new Date(t).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' }); } catch (e) { return ''; } }

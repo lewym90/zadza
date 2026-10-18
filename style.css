@@ -256,7 +256,7 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 .menu button small{font-family:var(--ui);font-style:normal;font-size:.8rem;color:var(--muted);font-weight:500}
 .lvls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .lvls button{min-height:60px;border-radius:16px;padding:0 14px;text-align:left;background:rgba(var(--tc),.16);box-shadow:inset 0 0 0 1px rgba(var(--tc),.45);font-family:var(--display);font-style:italic;font-weight:700;font-size:1.1rem}
-.lvls button:nth-child(1){--tc:255,170,140}.lvls button:nth-child(2){--tc:255,110,60}.lvls button:nth-child(3){--tc:255,40,90}.lvls button:nth-child(4){--tc:200,10,40}
+.lvls button:nth-child(1){--tc:255,170,140}.lvls button:nth-child(2){--tc:255,110,60}.lvls button:nth-child(3){--tc:255,40,90}.lvls button:nth-child(4){--tc:200,10,40}.lvls button:nth-child(5){--tc:150,0,40}
 .lvls button.on{box-shadow:inset 0 0 0 2px rgb(var(--tc))}
 .dice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .die{min-height:84px;border-radius:18px;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;
@@ -317,3 +317,7 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 .acts.solo #btn-skip{display:none}
 
 .acts .btn{white-space:nowrap}
+#s-dice #dice-play{display:flex;flex-direction:column;gap:14px;flex:1}
+#s-dice #dice-setup{display:flex;flex-direction:column;gap:18px;flex:1}
+#s-dice #dice-play[hidden],#s-dice #dice-setup[hidden]{display:none}
+#dtmr{margin:0}

@@ -15,8 +15,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="fonts.css?v=202610181923">
-<link rel="stylesheet" href="style.css?v=202610181923">
+<link rel="stylesheet" href="fonts.css?v=202610181936">
+<link rel="stylesheet" href="style.css?v=202610181936">
 </head>
 <body data-level="1" data-role="m">
 
@@ -91,11 +91,31 @@
   <!-- USTAWIENIA -->
   <section class="scr" id="s-setup">
     <button class="back-l" data-go="home"><svg><use href="#i-back"/></svg>Wróć</button>
-    <h2 class="hd">Nowa gra</h2>
+    <h2 class="hd">Kto gra</h2>
     <div class="names">
       <div class="field m"><label for="n0">On</label><input id="n0" maxlength="20" autocomplete="off" autocapitalize="words" placeholder="Jego imię"></div>
       <div class="field f"><label for="n1">Ona</label><input id="n1" maxlength="20" autocomplete="off" autocapitalize="words" placeholder="Jej imię"></div>
     </div>
+    <button class="chip" id="chk-pref" hidden>Ustawcie wybory od nowa</button>
+    <div class="grow"></div>
+    <button class="btn latex" id="btn-setup-go">Dalej</button>
+  </section>
+
+  <!-- WYBÓR GRY -->
+  <section class="scr" id="s-choose">
+    <h2 class="hd">W co gracie?</h2>
+    <div class="stack">
+      <button class="tier on" id="go-cards" style="--tc:255,40,90"><span class="n">♠</span><div><b>Karty</b><span>Talia zadań, która rośnie w temperaturę. Dłuższa gra.</span></div></button>
+      <button class="tier on" id="go-dice" style="--tc:255,110,60"><span class="n">⚄</span><div><b>Kostki</b><span>Cztery kostki, jedno zadanie i czas. Krótka, szybka gra.</span></div></button>
+    </div>
+    <div class="grow"></div>
+    <button class="chip" data-go="setup">Zmień imiona</button>
+  </section>
+
+  <!-- KARTY: USTAWIENIA -->
+  <section class="scr" id="s-cards">
+    <button class="back-l" data-go="choose"><svg><use href="#i-back"/></svg>Wróć</button>
+    <h2 class="hd">Karty</h2>
     <div class="stack tight">
       <span class="lab">Jak ma rosnąć temperatura</span>
       <div class="seg" id="seg-mode">
@@ -125,9 +145,46 @@
       </div>
       <p class="note">Po wyczerpaniu limitu każde pominięcie kosztuje karę.</p>
     </div>
-    <button class="chip" id="chk-pref" hidden>Ustawcie wybory od nowa</button>
     <div class="grow"></div>
-    <button class="btn latex" id="btn-setup-go">Dalej</button>
+    <button class="btn latex" id="btn-cards-go">Dalej</button>
+  </section>
+
+  <!-- KOSTKI -->
+  <section class="scr" id="s-dice">
+    <button class="back-l" data-go="choose" id="dice-back"><svg><use href="#i-back"/></svg>Wróć</button>
+    <div id="dice-setup">
+      <h2 class="hd">Kostki</h2>
+      <div class="stack tight">
+        <span class="lab">Temperatura</span>
+        <div class="seg" id="dseg-lvl">
+          <button data-v="0">Rośnie</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button>
+        </div>
+        <p class="note" id="dnote-lvl"></p>
+      </div>
+      <div class="stack tight">
+        <span class="lab">Czas na zadanie</span>
+        <div class="seg" id="dseg-time">
+          <button data-v="30">30 s</button><button data-v="60">1 min</button><button data-v="120">2 min</button><button data-v="0">Bez czasu</button>
+        </div>
+      </div>
+      <div class="grow"></div>
+      <button class="btn latex" id="btn-dice-start">Zaczynamy</button>
+    </div>
+    <div id="dice-play" hidden>
+      <div class="who"><span class="r" id="dp-r">on</span><span class="nm" id="dp-nm"></span></div>
+      <div class="dice">
+        <div class="die" id="d0"><small>Czynność</small><b>?</b></div>
+        <div class="die" id="d1"><small>Część ciała</small><b>?</b></div>
+        <div class="die" id="d2"><small>Sposób</small><b>?</b></div>
+        <div class="die" id="d3"><small>Miejsce</small><b>?</b></div>
+      </div>
+      <p class="say" id="dice-say">Rzuć kostkami.</p>
+      <div class="tmrbar" id="dtmr" hidden><i id="dtmr-fill"></i></div>
+      <p class="note" id="dtmr-txt" style="text-align:center"></p>
+      <div class="prog"><span id="dp-info"></span></div>
+      <button class="btn latex" id="btn-roll">Rzuć kostkami</button>
+      <button class="chip" id="dice-end">Zakończ</button>
+    </div>
   </section>
 
   <!-- WYBORY TAK / MOŻE / NIE -->
@@ -190,9 +247,6 @@
       <button class="btn ghost" id="btn-skip">Pomiń <em id="skip-n">3</em></button>
       <button class="btn latex" id="btn-next">Następna karta</button>
     </div>
-    <div class="acts2">
-      <button class="chip" id="btn-dice"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-dice"/></svg>Kostki</button>
-    </div>
   </section>
 
   <section class="scr up" id="s-up">
@@ -253,26 +307,9 @@
   </div>
 </div>
 
-<div class="sheet" id="sh-dice" aria-hidden="true">
-  <div class="bk" data-close></div>
-  <div class="pn">
-    <div class="grab"></div>
-    <span class="lab" id="dice-who">Kostki</span>
-    <div class="dice">
-      <div class="die" id="d0"><small>Czynność</small><b>?</b></div>
-      <div class="die" id="d1"><small>Część ciała</small><b>?</b></div>
-      <div class="die" id="d2"><small>Sposób</small><b>?</b></div>
-      <div class="die" id="d3"><small>Miejsce</small><b>?</b></div>
-    </div>
-    <p class="say" id="dice-say">Rzuć kostkami.</p>
-    <button class="btn latex" id="btn-roll">Rzuć kostkami</button>
-    <button class="btn ghost" data-close>Zamknij</button>
-  </div>
-</div>
-
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="data.js?v=202610181923"></script>
-<script src="app.js?v=202610181923"></script>
+<script src="data.js?v=202610181936"></script>
+<script src="app.js?v=202610181936"></script>
 </body>
 </html>
