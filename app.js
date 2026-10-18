@@ -232,7 +232,7 @@ $('btn-draw-go').onclick = function () {
   var length = S.set.length;
   G = {
     mode: S.set.mode, lvl: d.lvl, length: length,
-    per: length > 0 ? Math.max(3, Math.ceil(length / 5)) : 8,
+    per: length > 0 ? Math.max(3, Math.floor(length / 5)) : 8,
     starter: d.starter, player: d.starter, turn: 0,
     names: S.names.slice(), skips: [S.set.skips, S.set.skips],
     used: {}, lastHot: -9, cur: null, log: [], cl: [0, 0], ejAt: -99, herO: 0,
@@ -276,7 +276,7 @@ function applyEffects() {
     if (r.et !== undefined) G.cl[p ^ 1] = applyFx(r.et, G.cl[p ^ 1]);
   }
   if (ejHere(c, p)) G.ejAt = G.turn;
-  if (c.o) G.herO = 1;
+  if (c.o && (c.o === 1 || c.o === 'b' || c.o === roleKey(p))) G.herO = 1;
 }
 function findCard(id) {
   var i, l, arr;
