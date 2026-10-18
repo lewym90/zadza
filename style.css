@@ -154,9 +154,7 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 .row .t{font-family:var(--display);font-style:italic;font-weight:600;font-size:1.12rem;line-height:1.2}
 .tri{display:flex;gap:4px;padding:4px;border-radius:14px;background:rgba(0,0,0,.5)}
 .tri button{min-width:52px;min-height:42px;border-radius:11px;font-size:.88rem;font-weight:600;color:var(--muted)}
-.tri button.on[data-v="tak"]{color:#fff;background:linear-gradient(180deg,#ff4d6f,#b00c2e);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
-.tri button.on[data-v="moze"]{color:var(--skin);background:rgba(255,211,196,.16)}
-.tri button.on[data-v="nie"]{color:#6e4e50;background:#000;text-decoration:line-through}
+.tri button.on{color:#fff;background:linear-gradient(180deg,#ff4d6f,#b00c2e);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 4px 12px rgba(227,18,58,.35)}
 .hand{align-items:flex-start;justify-content:center}
 .hand .big{font-family:var(--display);font-style:italic;font-weight:900;font-size:clamp(3.6rem,19vw,6rem);line-height:.9;letter-spacing:-.03em;
   background:linear-gradient(170deg,#fff1ea,var(--role) 55%,var(--role2));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 6px 22px rgba(0,0,0,.5))}
