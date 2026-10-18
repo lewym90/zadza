@@ -50,7 +50,8 @@ function show(name) {
   if (name === 'fav') renderFav();
   if (name === 'game') document.body.setAttribute('data-level', G.lvl);
   else if (name !== 'up') document.body.setAttribute('data-level', name === 'end' ? 4 : 1);
-  if (name === 'game' || name === 'dice') wake(); else if (name === 'home' || name === 'end') unwake();
+  $('stop-btn').hidden = !(name === 'lic' || name === 'kon');
+  if (name === 'game' || name === 'dice' || name === 'lic' || name === 'kon') wake(); else if (name === 'home' || name === 'end') unwake();
 }
 document.addEventListener('click', function (e) {
   var t = e.target.closest ? e.target.closest('[data-go]') : null;
@@ -1018,5 +1019,264 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
       });
     }).catch(function () {});
   });
+}
+
+/* ---------- wspólne: STOP, liczniki ---------- */
+var PAUSED = false, ACTG = '';
+function setPause(on) { PAUSED = on; $('stop-ov').hidden = !on; }
+$('stop-btn').onclick = function () { setPause(true); vib(60); };
+$('stop-go').onclick = function () { setPause(false); };
+$('stop-quit').onclick = function () { setPause(false); if (ACTG === 'kon') konEnd(); else if (ACTG === 'lic') licEnd(); else show('choose'); };
+function gend(title, lines) {
+  $('gend-t').textContent = title;
+  $('gend-l').innerHTML = lines.map(function (l) { return '<p class="pcw-tx">' + esc(l) + '</p>'; }).join('');
+  document.body.setAttribute('data-role', 'm'); show('gend'); document.body.setAttribute('data-level', 4);
+}
+function segSet(id, val) { qa('#' + id + ' button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-v') === String(val)); }); }
+function segOn(id, fn) { $(id).onclick = function (e) { var b = e.target.closest('button'); if (b) fn(b.getAttribute('data-v')); }; }
+function vetoAny(g) { return dVeto(g); }
+
+/* ---------- Licytacja ciała ---------- */
+var LI = null, LN = 12, lt = null;
+function licStop() { clearInterval(lt); lt = null; }
+$('go-licyt').onclick = function () {
+  document.body.setAttribute('data-role', 'm'); show('licset'); document.body.setAttribute('data-level', 1);
+  segSet('lseg-n', LN);
+};
+segOn('lseg-n', function (v) { LN = +v; segSet('lseg-n', LN); });
+$('btn-lic-start').onclick = function () {
+  ACTG = 'lic';
+  LI = { n: LN, r: 0, tok: [20, 20], bid: [0, 0], tot: [0, 0], dem: [0, 0], perf: [0, 0], used: {}, pi: 0, trap: false, card: null, lvl: 1, tie: 0 };
+  licRound();
+};
+function licLvl() { return LI.r >= LI.n ? 5 : Math.min(5, 1 + Math.floor((LI.r - 1) * 5 / LI.n)); }
+function licRound() {
+  LI.r++;
+  var fin = LI.r === LI.n, lvl = licLvl(), c = null, pool;
+  LI.lvl = lvl;
+  if (fin) pool = DATA.lic.f.filter(function (x) { return !vetoAny(x.g); });
+  else {
+    pool = DATA.lic.c.filter(function (x, i) { return x.l === lvl && !LI.used[i] && !vetoAny(x.g); });
+    if (!pool.length) pool = DATA.lic.c.filter(function (x, i) { return x.l >= lvl - 1 && x.l <= lvl && !vetoAny(x.g); });
+  }
+  if (!pool.length) pool = DATA.lic.c.filter(function (x) { return !vetoAny(x.g); });
+  if (!pool.length) pool = DATA.lic.c;
+  c = pickOne(pool); if (!fin) LI.used[DATA.lic.c.indexOf(c)] = 1;
+  LI.card = c;
+  LI.trap = !fin && LI.r >= 3 && /^Ona\s/.test(c.m) && /^On\s/.test(c.f) && Math.random() < 0.3;
+  $('lic-lvl').textContent = lvl + '. ' + LV[lvl].name;
+  $('lic-rd').textContent = (fin ? 'Finał' : 'Runda ' + LI.r + ' z ' + LI.n);
+  $('lic-m').textContent = c.m; $('lic-f').textContent = c.f;
+  $('lic-kind').textContent = fin ? 'Nagroda finałowa' : 'Nagroda';
+  LI.bid = [0, 0]; LI.pi = 0;
+  show('lic'); licBid();
+}
+function licBid() {
+  var pi = LI.pi, role = pi === 0 ? 'm' : 'f';
+  document.body.setAttribute('data-role', role); document.body.setAttribute('data-level', LI.lvl);
+  $('lic-r').textContent = pi === 0 ? 'on' : 'ona'; $('lic-nm').textContent = S.names[pi];
+  $('lic-card').hidden = false; $('lic-bid').hidden = false; $('lic-res').hidden = true;
+  $('lic-tok').textContent = 'Twoje żetony: ' + LI.tok[pi];
+  $('lic-ask').textContent = 'Ile żetonów dajesz za tę nagrodę? Druga osoba nie może patrzeć.';
+  LI.val = 0; $('lic-val').textContent = 0;
+}
+$('lic-plus').onclick = function () { if (LI.val < LI.tok[LI.pi]) { LI.val++; $('lic-val').textContent = LI.val; vib(8); } };
+$('lic-minus').onclick = function () { if (LI.val > 0) { LI.val--; $('lic-val').textContent = LI.val; vib(8); } };
+$('lic-ok').onclick = function () {
+  LI.bid[LI.pi] = LI.val;
+  if (LI.pi === 0) {
+    LI.pi = 1; $('lhand-name').textContent = S.names[1];
+    document.body.setAttribute('data-role', 'f'); show('lhand'); document.body.setAttribute('data-level', LI.lvl);
+  } else licResolve();
+};
+$('btn-lhand-go').onclick = function () { show('lic'); licBid(); };
+function licResolve() {
+  var b = LI.bid, c = LI.card, out, sec = c.s || 0;
+  LI.tot[0] += b[0]; LI.tot[1] += b[1];
+  $('lic-card').hidden = true; $('lic-bid').hidden = true; $('lic-res').hidden = false;
+  $('lic-tok').textContent = '';
+  document.body.setAttribute('data-role', 'm');
+  if (b[0] === b[1]) {
+    var tl = DATA.lic.t.filter(function (t) { return t.l === LI.lvl && !vetoAny(t.g); });
+    var t = tl.length ? pickOne(tl) : DATA.lic.t[0];
+    out = 'Remis, ' + b[0] + ' do ' + b[1] + '. Żetony wracają do was. ' + t.t;
+    LI.tie++; sec = 0;
+  } else {
+    var w = b[0] > b[1] ? 0 : 1, l = 1 - w, bw = b[w];
+    LI.tok[w] -= bw; LI.tok[l] += bw;
+    document.body.setAttribute('data-role', w === 0 ? 'm' : 'f');
+    if (LI.trap) {
+      var txt = l === 0 ? c.m : c.f;
+      out = 'PUŁAPKA! ' + S.names[w] + ' wygrywa licytację (' + b[w] + ' do ' + b[l] + '), ale karta jest odwrócona. ' + S.names[w] + ' musi to wykonać dla ' + (l === 0 ? 'partnera' : 'partnerki') + ': ' + txt;
+      LI.perf[w]++;
+    } else {
+      out = S.names[w] + ' wygrywa licytację (' + b[w] + ' do ' + b[l] + ') i rozkazuje: ' + (w === 0 ? c.m : c.f);
+      LI.dem[w]++; LI.perf[l]++;
+    }
+    out += '\n\nŻetony: ' + S.names[0] + ' ' + LI.tok[0] + ', ' + S.names[1] + ' ' + LI.tok[1] + '.';
+  }
+  $('lic-out').style.whiteSpace = 'pre-line';
+  $('lic-out').textContent = out;
+  licStop(); $('lic-tm').hidden = !sec; LI.sec = sec;
+  $('lic-fill').style.transition = 'none'; $('lic-fill').style.transform = 'scaleX(1)';
+  $('lic-ttxt').textContent = sec ? fmt(sec) : ''; $('lic-tstart').hidden = !sec;
+  $('lic-next').textContent = LI.r >= LI.n ? 'Zobacz wyniki' : 'Zrobione, dalej';
+  vib([40, 40, 80]);
+}
+$('lic-tstart').onclick = function () {
+  var left = LI.sec; $('lic-tstart').hidden = true; licStop();
+  $('lic-fill').style.transition = 'none'; $('lic-fill').style.transform = 'scaleX(1)';
+  void $('lic-fill').offsetWidth; $('lic-fill').style.transition = 'transform 1s linear';
+  lt = setInterval(function () {
+    if (PAUSED) return;
+    left--; $('lic-ttxt').textContent = fmt(Math.max(0, left));
+    $('lic-fill').style.transform = 'scaleX(' + Math.max(0, left / LI.sec) + ')';
+    if (left <= 0) { licStop(); beep(); vib([200, 100, 200]); }
+  }, 1000);
+};
+$('lic-next').onclick = function () { licStop(); if (LI.r >= LI.n) licEnd(); else licRound(); };
+$('lic-end').onclick = function () { if (confirm('Zakończyć grę?')) licEnd(); };
+function licEnd() {
+  licStop(); var L = LI; if (!L) { show('choose'); return; } LI = null;
+  var n = S.names, lines = [];
+  lines.push('Żetony na koniec: ' + n[0] + ' ' + L.tok[0] + ', ' + n[1] + ' ' + L.tok[1] + '.');
+  lines.push('Wygrane licytacje z rozkazem: ' + n[0] + ' ' + L.dem[0] + ', ' + n[1] + ' ' + L.dem[1] + '.');
+  lines.push('Wykonane polecenia: ' + n[0] + ' ' + L.perf[0] + ', ' + n[1] + ' ' + L.perf[1] + '.');
+  lines.push('Suma ofert: ' + n[0] + ' ' + L.tot[0] + ', ' + n[1] + ' ' + L.tot[1] + '. ' + (L.tot[0] === L.tot[1] ? 'Pod tym względem remis.' : 'Bardziej chciwa była osoba: ' + n[L.tot[0] > L.tot[1] ? 0 : 1] + '.'));
+  if (L.tie) lines.push('Remisów: ' + L.tie + '.');
+  gend('Koniec licytacji', lines);
+}
+
+/* ---------- Kontrola ---------- */
+var KN = null, KC = { who: 'r', sw: 15, lvl: 0 }, kt = null;
+$('go-kon').onclick = function () {
+  document.body.setAttribute('data-role', 'm'); show('konset'); document.body.setAttribute('data-level', 1);
+  segSet('kseg-who', KC.who); segSet('kseg-sw', KC.sw); segSet('kseg-lvl', KC.lvl);
+};
+segOn('kseg-who', function (v) { KC.who = v; segSet('kseg-who', v); });
+segOn('kseg-sw', function (v) { KC.sw = +v; segSet('kseg-sw', v); });
+segOn('kseg-lvl', function (v) { KC.lvl = +v; segSet('kseg-lvl', v); });
+$('btn-kon-start').onclick = function () {
+  ACTG = 'kon';
+  KN = { ctl: KC.who === 'r' ? rnd(2) : +KC.who, sw: KC.sw, lv: KC.lvl, act: 0, swc: 0, rounds: 0, base: 0, meter: 3, bans: 3, used: {}, ord: null, left: 0, ban: null,
+    st: [{ ok: 0, bad: 0, late: 0, perm: 0, pun: 0 }, { ok: 0, bad: 0, late: 0, perm: 0, pun: 0 }], opts: [] };
+  clearInterval(kt); kt = setInterval(kTick, 1000);
+  kShowPick();
+};
+function kLvl() { return KN.lv ? KN.lv : Math.min(5, 1 + Math.floor(KN.rounds / 5)); }
+function kTitle(i) { return i === 0 ? 'Pan' : 'Pani'; }
+function kHead() {
+  var c = KN.ctl, o = 1 - c, lvl = kLvl();
+  document.body.setAttribute('data-role', c === 0 ? 'm' : 'f'); document.body.setAttribute('data-level', lvl);
+  $('kon-lvl').textContent = lvl + '. ' + LV[lvl].name;
+  $('kon-roles').textContent = 'Władca: ' + S.names[c] + ' (' + kTitle(c) + ') · Posłuszny: ' + S.names[o];
+  var h = ''; for (var i = 1; i <= 10; i++) h += '<i class="' + (i <= KN.meter ? 'on' : '') + '"></i>';
+  $('kon-meter').innerHTML = h;
+  kBanTxt();
+}
+function kBanTxt() {
+  var b = KN.ban;
+  $('kon-ban').className = 'note' + (b ? ' live' : '');
+  $('kon-ban').textContent = b ? 'ZAKAZ: ' + b.t + ' (' + b.left + ' s)' : 'Żetony zakazu Władcy: ' + KN.bans;
+}
+function kOpts() {
+  var key = KN.ctl === 0 ? 'f' : 'm', lvl = kLvl();
+  var ok = function (lo) { return DATA.kon.o.filter(function (x, i) { return x.l >= lo && x.l <= lvl && !KN.used[i] && !vetoAny(x.g); }); };
+  var pool = ok(lvl);
+  if (pool.length < 3) pool = ok(Math.max(1, lvl - 1));
+  if (pool.length < 3) pool = ok(1);
+  if (pool.length < 1) { KN.used = {}; pool = ok(1); }
+  if (!pool.length) pool = DATA.kon.o;
+  var out = [];
+  while (out.length < 3 && pool.length) out.push(pool.splice(rnd(pool.length), 1)[0]);
+  return out.map(function (o) { return { o: o, tx: o[key], i: DATA.kon.o.indexOf(o) }; });
+}
+function kShowPick() {
+  if (KN.sw && KN.act >= KN.sw * 60 * (KN.swc + 1)) {
+    KN.swc++; KN.ctl = 1 - KN.ctl; KN.meter = 3; KN.base = KN.rounds; KN.bans = 3; KN.ban = null;
+    $('kswap-name').textContent = S.names[KN.ctl];
+    document.body.setAttribute('data-role', KN.ctl === 0 ? 'm' : 'f'); show('kswap'); return;
+  }
+  show('kon'); kHead();
+  KN.opts = kOpts();
+  $('kon-pick').hidden = false; $('kon-ord').hidden = true;
+  $('kon-pickask').textContent = S.names[KN.ctl] + ', wybierz rozkaz dla ' + (KN.ctl === 0 ? 'partnerki' : 'partnera') + '.';
+  $('kon-opts').innerHTML = KN.opts.map(function (x, i) {
+    return '<button data-i="' + i + '">' + esc(x.tx) + '<br><small style="opacity:.65">' + fmt(x.o.s) + '</small></button>';
+  }).join('');
+}
+$('btn-kswap-go').onclick = function () { kShowPick(); };
+$('kon-opts').onclick = function (e) { var b = e.target.closest('button'); if (b) kOrder(KN.opts[+b.getAttribute('data-i')], 'Rozkaz'); };
+$('kon-rand').onclick = function () { kOrder(pickOne(KN.opts), 'Rozkaz'); };
+function kPanel(kind, tx, sec, judge) {
+  $('kon-pick').hidden = true; $('kon-ord').hidden = false;
+  $('kon-kind').textContent = kind; $('kon-tx').textContent = tx;
+  $('kon-judge').hidden = !judge; $('kon-tools').hidden = !judge; $('kon-ok').hidden = judge;
+  $('kon-tm').hidden = !sec; KN.sec = sec; KN.left = sec; KN.run = !!sec;
+  $('kon-fill').style.transition = 'none'; $('kon-fill').style.transform = 'scaleX(1)';
+  void $('kon-fill').offsetWidth; $('kon-fill').style.transition = 'transform 1s linear';
+  $('kon-ttxt').textContent = sec ? fmt(sec) : '';
+  var bl = $('kon-banlist'); if (bl) bl.remove();
+}
+function kOrder(x, kind) {
+  KN.used[x.i] = 1; KN.cur = x; vib(30);
+  kPanel(kind, x.tx, x.o.s, true); kHead();
+}
+function kTick() {
+  if (!KN || PAUSED || cur !== 'kon') return;
+  KN.act++;
+  if (KN.run && KN.left > 0) {
+    KN.left--; $('kon-ttxt').textContent = fmt(KN.left);
+    $('kon-fill').style.transform = 'scaleX(' + (KN.left / KN.sec) + ')';
+    if (KN.left <= 0) { KN.run = false; beep(); vib([200, 100, 200]); }
+  }
+  if (KN.ban) { KN.ban.left--; if (KN.ban.left <= 0) { KN.ban = null; vib(80); } kBanTxt(); }
+}
+function kJudge(kind) {
+  var o = 1 - KN.ctl, st = KN.st[o], d = 0;
+  if (kind === 'good') { var fast = KN.sec && (KN.sec - KN.left) < KN.sec * 0.6; d = fast ? 2 : 1; st.ok++; }
+  else if (kind === 'late') { d = 0; st.late++; }
+  else { d = -2; st.bad++; }
+  KN.meter = Math.max(0, Math.min(10, KN.meter + d)); KN.rounds++;
+  if (KN.meter >= 10 && KN.rounds - KN.base < 7) KN.meter = 9; KN.run = false; KN.ban = null;
+  if (KN.meter >= 10) {
+    var p = pickOne(DATA.kon.p), key = KN.ctl === 0 ? 'f' : 'm';
+    kPanel('Pozwolenie na orgazm', p[key], 0, false); kHead(); KN.after = 'perm'; vib([60, 60, 120]);
+  } else if (KN.meter <= 0) {
+    var k = pickOne(DATA.kon.k), key2 = KN.ctl === 0 ? 'f' : 'm';
+    kPanel('Kara', k[key2], k.s, false); kHead(); KN.after = 'pun'; vib([200, 80, 200]);
+  } else kShowPick();
+}
+$('kon-good').onclick = function () { kJudge('good'); };
+$('kon-late').onclick = function () { kJudge('late'); };
+$('kon-bad').onclick = function () { kJudge('bad'); };
+$('kon-ok').onclick = function () {
+  var o = 1 - KN.ctl;
+  if (KN.after === 'perm') { KN.st[o].perm++; KN.meter = 3; KN.base = KN.rounds; } else { KN.st[o].pun++; KN.meter = 2; }
+  KN.after = ''; kShowPick();
+};
+$('kon-banb').onclick = function () {
+  if (KN.ban) { toast('Zakaz już trwa.'); return; }
+  if (KN.bans <= 0) { toast('Brak żetonów zakazu.'); return; }
+  var bl = $('kon-banlist'); if (bl) { bl.remove(); return; }
+  bl = document.createElement('div'); bl.id = 'kon-banlist'; bl.className = 'stack tight';
+  bl.innerHTML = DATA.kon.b.map(function (b, i) { return '<button class="chip" data-b="' + i + '">' + esc(b.t) + ' (' + b.s + ' s)</button>'; }).join('');
+  $('kon-ord').appendChild(bl);
+  bl.onclick = function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var d = DATA.kon.b[+b.getAttribute('data-b')];
+    KN.bans--; KN.ban = { t: d.t + ' – ' + d.d, left: d.s }; bl.remove(); kBanTxt(); vib(60);
+  };
+};
+$('kon-end').onclick = function () { if (confirm('Zakończyć grę?')) konEnd(); };
+function konEnd() {
+  clearInterval(kt); kt = null; var K = KN; if (!K) { show('choose'); return; } KN = null;
+  var n = S.names, lines = [];
+  lines.push('Czas gry: ' + Math.floor(K.act / 60) + ' min. Wykonanych rozkazów: ' + K.rounds + '.');
+  [0, 1].forEach(function (i) {
+    var s = K.st[i];
+    lines.push(n[i] + ' w roli Posłusznego: dobrze ' + s.ok + ', spóźnione ' + s.late + ', niewykonane ' + s.bad + ', pozwolenia na orgazm ' + s.perm + ', kary ' + s.pun + '.');
+  });
+  gend('Koniec kontroli', lines);
 }
 })();

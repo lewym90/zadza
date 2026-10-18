@@ -357,3 +357,25 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 #fr-heat i{width:9px;height:18px;border-radius:5px;background:rgba(255,211,196,.14)}
 #fr-heat i.on{background:linear-gradient(180deg,#ff9a6a,#e0123c)}
 #s-freveal,#s-fsel,#s-pcw{gap:14px}
+
+/* Licytacja / Kontrola */
+.stepper{display:flex;align-items:center;justify-content:center;gap:22px}
+.stepper b{font-family:var(--display);font-style:italic;font-weight:900;font-size:4rem;min-width:2ch;text-align:center;color:#fff3ee}
+.stepper .chip{width:64px;height:64px;font-size:2rem;display:grid;place-items:center;padding:0}
+#lic-card{gap:10px}
+#lic-card .pcw-tx{font-size:1.08rem}
+#lic-tm .tmrbar{width:100%;margin:0}
+#lic-tm .tmrbar i,#kon-tm .tmrbar i{transform:scaleX(1);transition:transform 1s linear}
+#lic-tm{display:flex;flex-direction:column;gap:8px;align-items:center}
+#kon-tm{display:flex;flex-direction:column;gap:8px;align-items:center}
+#kon-tm .tmrbar{width:100%;margin:0}
+#kon-meter{display:flex;gap:4px}
+#kon-meter i{flex:1;height:16px;border-radius:5px;background:rgba(255,211,196,.14)}
+#kon-meter i.on{background:linear-gradient(180deg,#ff9a6a,#e0123c)}
+#kon-opts button{text-align:left;font-size:1rem;line-height:1.35;padding:14px 16px;border-radius:14px;background:rgba(255,211,196,.06);box-shadow:inset 0 0 0 1px rgba(255,211,196,.16);color:#fff3ee;width:100%}
+#stop-btn{position:fixed;top:max(10px,env(safe-area-inset-top));right:12px;z-index:60;height:46px;padding:0 20px;border-radius:23px;font-weight:900;letter-spacing:.12em;color:#fff;background:#d6001f;box-shadow:0 0 0 2px #fff3ee,0 6px 18px rgba(214,0,31,.6)}
+#stop-ov{position:fixed;inset:0;z-index:99;background:#0b0104;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;padding:32px;text-align:center}
+#stop-ov[hidden]{display:none}
+#stop-ov b{font-family:var(--display);font-style:italic;font-weight:900;font-size:5rem;color:#ff4d6f}
+#stop-ov .btn{width:100%;max-width:340px}
+#kon-ban.live{color:#fff;font-weight:700}

@@ -15,8 +15,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="fonts.css?v=202610182033">
-<link rel="stylesheet" href="style.css?v=202610182033">
+<link rel="stylesheet" href="fonts.css?v=202610182056">
+<link rel="stylesheet" href="style.css?v=202610182056">
 </head>
 <body data-level="1" data-role="m">
 
@@ -109,6 +109,8 @@
       <button class="tier on" id="go-kama" style="--tc:200,10,40"><span class="n">♥</span><div><b>Kamasutra</b><span>Pozycje z rysunkami i opisami. Losujcie nową do wypróbowania.</span></div></button>
       <button class="tier on" id="go-pcw" style="--tc:230,40,90"><span class="n">?</span><div><b>Prawda czy Wyzwanie</b><span>Szczere wyznania i brudne zadania. Im dalej, tym ostrzej.</span></div></button>
       <button class="tier on" id="go-fant" style="--tc:170,10,70"><span class="n">✦</span><div><b>Fantazje</b><span>Tajne wybory, a potem scenariusze tylko z tego, czego chcecie oboje.</span></div></button>
+      <button class="tier on" id="go-licyt" style="--tc:210,20,70"><span class="n">$</span><div><b>Licytacja ciała</b><span>Tajne oferty żetonami. Kto da więcej, ten rozkazuje.</span></div></button>
+      <button class="tier on" id="go-kon" style="--tc:120,0,40"><span class="n">♛</span><div><b>Kontrola</b><span>Jedno rozkazuje, drugie słucha. Nagrodą jest pozwolenie na orgazm.</span></div></button>
       <button class="tier on" id="go-dice" style="--tc:255,110,60"><span class="n">⚄</span><div><b>Kostki</b><span>Cztery kostki, jedno zadanie i czas. Krótka, szybka gra.</span></div></button>
     </div>
     <div class="grow"></div>
@@ -382,6 +384,129 @@
   </section>
 
   <!-- KONIEC -->
+
+  <!-- LICYTACJA -->
+  <section class="scr" id="s-licset">
+    <button class="back-l" data-go="choose"><svg><use href="#i-back"/></svg>Wróć</button>
+    <h2 class="hd">Licytacja ciała</h2>
+    <p class="note">Każde dostaje 20 żetonów. W każdej rundzie jest nagroda, o którą licytujecie w tajemnicy na jednym telefonie. Kto da więcej, wygrywa i rozkazuje drugiemu. Płaci swoją ofertę, a przegrany dostaje ją jako rekompensatę. Czasem karta okazuje się pułapką.</p>
+    <div class="stack tight">
+      <span class="lab">Liczba rund</span>
+      <div class="seg" id="lseg-n"><button data-v="8">8</button><button data-v="12">12</button><button data-v="16">16</button></div>
+    </div>
+    <div class="grow"></div>
+    <button class="btn latex" id="btn-lic-start">Zaczynamy</button>
+  </section>
+  <section class="scr" id="s-lic">
+    <div class="top">
+      <button class="ico" id="lic-end" aria-label="Zakończ"><svg><use href="#i-back"/></svg></button>
+      <div class="heat"><span id="lic-lvl"></span></div>
+      <span class="ico" style="opacity:0"></span>
+    </div>
+    <div class="khead"><span class="lab" id="lic-rd"></span><span class="note" id="lic-tok"></span></div>
+    <div id="lic-card" class="kcard">
+      <span class="lab" id="lic-kind">Nagroda</span>
+      <div class="frole m"><span class="lab">Jeśli wygra On</span><p class="pcw-tx" id="lic-m"></p></div>
+      <div class="frole f"><span class="lab">Jeśli wygra Ona</span><p class="pcw-tx" id="lic-f"></p></div>
+    </div>
+    <div id="lic-bid" class="stack">
+      <div class="who"><span class="r" id="lic-r">on</span><span class="nm" id="lic-nm"></span></div>
+      <p class="sub" id="lic-ask"></p>
+      <div class="stepper"><button class="chip" id="lic-minus">−</button><b id="lic-val">0</b><button class="chip" id="lic-plus">+</button></div>
+      <button class="btn latex" id="lic-ok">Zatwierdź w tajemnicy</button>
+    </div>
+    <div id="lic-res" class="stack" hidden>
+      <p class="pcw-tx" id="lic-out"></p>
+      <div id="lic-tm" hidden>
+        <div class="tmrbar"><i id="lic-fill"></i></div>
+        <button class="chip" id="lic-tstart">Start</button>
+        <span class="note" id="lic-ttxt"></span>
+      </div>
+      <button class="btn latex" id="lic-next">Zrobione, dalej</button>
+    </div>
+  </section>
+  <section class="scr hand" id="s-lhand">
+    <div class="grow"></div>
+    <p class="tag">Oddaj telefon</p>
+    <h2 class="big" id="lhand-name"></h2>
+    <p class="sub">Teraz licytuje druga osoba. Pierwsza oferta zostaje ukryta.</p>
+    <div class="grow"></div>
+    <button class="btn latex" id="btn-lhand-go">Jestem gotowa</button>
+  </section>
+
+  <!-- KONTROLA -->
+  <section class="scr" id="s-konset">
+    <button class="back-l" data-go="choose"><svg><use href="#i-back"/></svg>Wróć</button>
+    <h2 class="hd">Kontrola</h2>
+    <p class="note">Jedno z was jest Władcą, drugie Posłusznym. Władca wybiera rozkazy, Posłuszny wykonuje je w czasie. Dobre posłuszeństwo napełnia miernik. Pełny miernik to pozwolenie na orgazm, a spadek do zera to kara. Duży przycisk STOP zatrzymuje wszystko.</p>
+    <div class="stack tight">
+      <span class="lab">Kto zaczyna jako Władca</span>
+      <div class="seg" id="kseg-who"><button data-v="r">Losowo</button><button data-v="0">On</button><button data-v="1">Ona</button></div>
+    </div>
+    <div class="stack tight">
+      <span class="lab">Zamiana ról</span>
+      <div class="seg" id="kseg-sw"><button data-v="10">Co 10 min</button><button data-v="15">Co 15 min</button><button data-v="0">Nigdy</button></div>
+    </div>
+    <div class="stack tight">
+      <span class="lab">Temperatura</span>
+      <div class="seg" id="kseg-lvl"><button data-v="0">Rośnie</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div>
+    </div>
+    <div class="grow"></div>
+    <button class="btn latex" id="btn-kon-start">Zaczynamy</button>
+  </section>
+  <section class="scr" id="s-kon">
+    <div class="top">
+      <button class="ico" id="kon-end" aria-label="Zakończ"><svg><use href="#i-back"/></svg></button>
+      <div class="heat"><span id="kon-lvl"></span></div>
+      <span class="ico" style="opacity:0"></span>
+    </div>
+    <p class="note" id="kon-roles" style="text-align:center"></p>
+    <div id="kon-meter"></div>
+    <p class="note" id="kon-ban" style="text-align:center"></p>
+    <div id="kon-pick" class="stack">
+      <p class="sub" id="kon-pickask"></p>
+      <div id="kon-opts" class="stack tight"></div>
+      <button class="chip" id="kon-rand">Niech gra wybierze</button>
+    </div>
+    <div id="kon-ord" class="kcard" hidden>
+      <span class="lab" id="kon-kind">Rozkaz</span>
+      <p class="pcw-tx" id="kon-tx"></p>
+      <div id="kon-tm">
+        <div class="tmrbar"><i id="kon-fill"></i></div>
+        <span class="note" id="kon-ttxt"></span>
+      </div>
+      <div class="acts" id="kon-judge">
+        <button class="btn ghost" id="kon-bad">Nie wykonano</button>
+        <button class="btn latex" id="kon-good">Wykonano</button>
+      </div>
+      <div class="acts" id="kon-tools">
+        <button class="chip" id="kon-late">Spóźnione</button>
+        <button class="chip" id="kon-banb">Żeton zakazu</button>
+      </div>
+      <button class="btn latex" id="kon-ok" hidden>Zrobione</button>
+    </div>
+  </section>
+  <section class="scr hand" id="s-kswap">
+    <div class="grow"></div>
+    <p class="tag">Zamiana ról</p>
+    <h2 class="big" id="kswap-name"></h2>
+    <p class="sub">Teraz ta osoba jest Władcą. Druga słucha.</p>
+    <div class="grow"></div>
+    <button class="btn latex" id="btn-kswap-go">Dalej</button>
+  </section>
+  <section class="scr" id="s-gend">
+    <h2 class="hd" id="gend-t">Koniec gry</h2>
+    <div class="stack" id="gend-l"></div>
+    <div class="grow"></div>
+    <button class="btn latex" data-go="choose">Wróć do wyboru gier</button>
+  </section>
+  <div id="stop-ov" hidden>
+    <b>STOP</b>
+    <p>Wszystko wstrzymane. Porozmawiajcie.</p>
+    <button class="btn latex" id="stop-go">Wznów</button>
+    <button class="btn ghost" id="stop-quit">Zakończ grę</button>
+  </div>
+  <button id="stop-btn" hidden>STOP</button>
   <section class="scr" id="s-end">
     <div class="grow"></div>
     <h2 class="mark" style="font-size:clamp(4.2rem,24vw,8rem)">Koniec</h2>
@@ -415,7 +540,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="data.js?v=202610182033"></script>
-<script src="app.js?v=202610182033"></script>
+<script src="data.js?v=202610182056"></script>
+<script src="app.js?v=202610182056"></script>
 </body>
 </html>
