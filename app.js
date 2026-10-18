@@ -656,7 +656,7 @@ $('pcw-end').onclick = function () { if (confirm('Zakończyć grę?')) { stopP()
 var FS = { pi: 0, v: [{}, {}] };
 function fantStart(pi) {
   FS.pi = pi;
-  $('fsel-hd').textContent = 'Fantazje: ' + S.names[pi];
+  $('fsel-hd').textContent = 'Fantazje: ' + S.names[pi]; $('fsel-back').hidden = pi !== 0;
   var h = '';
   DATA.fant.forEach(function (f) {
     h += '<div class="row" data-k="' + f.id + '"><span class="t">' + esc(f.t) + '<small>' + esc(f.z) + '</small></span><div class="tri">' +
@@ -1301,15 +1301,15 @@ var INTRO = {
     '<b>Start:</b> każde dostaje 20 żetonów. W każdej rundzie jest nagroda.',
     '<b>Licytacja:</b> po kolei, w tajemnicy, wpisujecie ofertę na jednym telefonie. Kto da więcej, wygrywa i rozkazuje drugiemu.',
     '<b>Płatność:</b> zwycięzca płaci swoją ofertę, a przegrany dostaje ją jako rekompensatę. Remis oddaje żetony.',
-    '<b>Uwaga:</b> czasem nagroda jest pułapką. Na koniec wygrywa ten, kto zebrał więcej żetonów, a finał to karta specjalna.']],
+    '<b>Uwaga:</b> czasem nagroda jest pułapką. Po ostatniej rundzie dostajecie podsumowanie: żetony, wygrane licytacje i wykonane polecenia.']],
   'go-kon': ['Kontrola', 'Jedno rozkazuje, drugie posłusznie wykonuje.', [
-    '<b>Role:</b> Władca wybiera rozkaz spośród trzech propozycji albo losuje. Posłuszny wykonuje go w wyznaczonym czasie.',
-    '<b>Ocena:</b> Władca ocenia wykonanie: dobrze, spóźnione albo źle. Szybkie i dobre wykonanie daje najwięcej punktów, złe odejmuje.',
-    '<b>Miernik:</b> gdy dojdzie do pełna, Posłuszny zasługuje na pozwolenie na orgazm. Gdy spadnie do zera, czeka go kara.',
-    '<b>Zakazy i zmiana:</b> Władca ma 3 zakazy po 30 sekund, a po kilkunastu minutach role się zamieniają. Przycisk STOP zatrzymuje wszystko.']],
+    '<b>Role:</b> Władca wybiera rozkaz z trzech propozycji albo losuje. Posłuszny wykonuje go w wyznaczonym czasie.',
+    '<b>Ocena:</b> Władca ocenia: dobrze, spóźnione albo źle. Dobre i szybkie wykonanie daje najwięcej punktów, złe odejmuje.',
+    '<b>Miernik:</b> pełny miernik to pozwolenie na orgazm, a spadek do zera to kara.',
+    '<b>Zakazy i zmiana:</b> Władca ma 3 zakazy po 30 sekund, a po kilkunastu minutach role się zamieniają. STOP zatrzymuje wszystko.']],
   'go-dice': ['Kostki', 'Cztery kostki, jedno zadanie i czas.', [
-    '<b>Jak grać:</b> rzucacie czterema kostkami. Z wyników składa się jedno zdanie: kto, co, gdzie i jak długo.',
-    '<b>Zadanie:</b> wykonujecie je, dopóki nie skończy się czas na liczniku.',
+    '<b>Jak grać:</b> rzucacie czterema kostkami: Czynność, Część ciała, Sposób i Miejsce. Z wyników składa się jedno zadanie.',
+    '<b>Zadanie:</b> wykonujecie je w wybranym czasie (30 s, 1 min, 2 min) albo bez limitu czasu.',
     '<b>Ustawienia:</b> przed grą wybieracie temperaturę i czas na zadanie.']]
 };
 Object.keys(INTRO).forEach(function (id) {
