@@ -15,8 +15,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="fonts.css?v=202610182158">
-<link rel="stylesheet" href="style.css?v=202610182158">
+<link rel="stylesheet" href="fonts.css?v=202610182209">
+<link rel="stylesheet" href="style.css?v=202610182209">
 </head>
 <body data-level="1" data-role="m">
 
@@ -523,6 +523,17 @@
     </div>
     <div class="grow"></div>
   </section>
+  <button id="mus-btn" aria-label="Muzyka">♪</button>
+  <div id="mus-pan" hidden>
+    <b>Muzyka w tle</b>
+    <button class="btn latex" id="mus-sw">Włącz muzykę</button>
+    <span class="lab">Nastrój</span>
+    <div class="seg" id="mus-moods"><button data-m="rom">Romantyczny</button><button data-m="dark">Mroczny</button><button data-m="puls">Pulsujący</button></div>
+    <span class="lab">Głośność</span>
+    <input type="range" id="mus-vol" min="0" max="100" value="70">
+    <p class="note" style="min-height:0">Muzyka rośnie razem z grą: od delikatnej do mocniejszej, płynnie, bez przerw. Wyłącz tryb cichy w telefonie.</p>
+    <button class="chip" id="mus-close">Zamknij</button>
+  </div>
   <div id="pin-ov" hidden>
     <b id="pin-t">Wpisz PIN</b>
     <p id="pin-m"></p>
@@ -576,7 +587,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="data.js?v=202610182158"></script>
-<script src="app.js?v=202610182158"></script>
+<script src="data.js?v=202610182209"></script>
+<script src="app.js?v=202610182209"></script>
 </body>
 </html>

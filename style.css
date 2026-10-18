@@ -402,3 +402,14 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 #pin-pad button{height:76px;border-radius:50%;background:rgba(255,211,196,.1);color:var(--skin);font-size:1.7rem;font-weight:600;box-shadow:inset 0 0 0 1px rgba(255,211,196,.2)}
 #pin-pad button:active{background:rgba(255,77,111,.35)}
 #pin-pad button.sm{font-size:.95rem;font-weight:500;background:transparent;box-shadow:none}
+
+#mus-btn{position:fixed;z-index:90;top:max(10px,env(safe-area-inset-top));right:10px;width:38px;height:38px;border-radius:50%;background:rgba(20,2,8,.6);color:var(--skin);font-size:1.2rem;box-shadow:inset 0 0 0 1px rgba(255,211,196,.28)}
+#mus-btn.on{color:#ff4d6f;box-shadow:inset 0 0 0 1.5px #ff4d6f}
+#mus-pan{position:fixed;z-index:91;top:calc(max(10px,env(safe-area-inset-top)) + 46px);right:10px;left:10px;max-width:340px;margin-left:auto;display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:18px;background:rgba(14,2,7,.96);box-shadow:inset 0 0 0 1px rgba(255,211,196,.22),0 10px 40px rgba(0,0,0,.6)}
+#mus-pan[hidden]{display:none}
+#mus-pan b{font-family:var(--display);font-style:italic;font-size:1.3rem;color:var(--skin)}
+#mus-vol{width:100%;accent-color:#ff4d6f}
+
+body.hasstop #mus-btn{right:122px}
+#s-lic .heat,#s-kon .heat{text-align:left}
+#s-lic .heat span,#s-kon .heat span{text-align:left}
