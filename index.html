@@ -15,8 +15,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="fonts.css?v=202610182149">
-<link rel="stylesheet" href="style.css?v=202610182149">
+<link rel="stylesheet" href="fonts.css?v=202610182158">
+<link rel="stylesheet" href="style.css?v=202610182158">
 </head>
 <body data-level="1" data-role="m">
 
@@ -79,6 +79,7 @@
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
         <button class="link" id="lnk-bony">Bony</button>
         <button class="link" id="lnk-fav">Ulubione</button>
+        <button class="link" id="lnk-pin">Blokada PIN</button>
       </div>
       <div class="install" id="install" hidden>
         <span>Żeby grać jak w aplikacji: Udostępnij, a potem „Do ekranu początkowego”.</span>
@@ -511,6 +512,30 @@
     <div class="grow"></div>
     <button class="btn latex" data-go="choose">Wróć do wyboru gier</button>
   </section>
+  <section class="scr" id="s-pin">
+    <button class="back-l" data-go="home"><svg><use href="#i-back"/></svg>Wróć</button>
+    <h2 class="hd">Blokada PIN</h2>
+    <p class="note" style="min-height:0">PIN zasłania aplikację przed osobami trzecimi, np. gdy ktoś weźmie Twój odblokowany telefon. Aplikacja blokuje się przy uruchomieniu i po powrocie z tła, jeśli minęło więcej niż 30 sekund. To zabezpieczenie prywatności, a nie szyfrowanie danych.</p>
+    <p class="kd" id="pin-state"></p>
+    <div class="stack tight">
+      <button class="btn latex" id="pin-set"></button>
+      <button class="btn ghost" id="pin-off" hidden>Wyłącz PIN</button>
+    </div>
+    <div class="grow"></div>
+  </section>
+  <div id="pin-ov" hidden>
+    <b id="pin-t">Wpisz PIN</b>
+    <p id="pin-m"></p>
+    <div id="pin-dots"><i></i><i></i><i></i><i></i></div>
+    <div id="pin-pad">
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+      <button data-k="x" id="pin-cancel" class="sm">Anuluj</button><button data-k="0">0</button><button data-k="b" class="sm" aria-label="Usuń">⌫</button>
+    </div>
+    <button class="link" id="pin-forgot" hidden>Nie pamiętam PIN-u</button>
+  </div>
+  <div id="cover" hidden><b>Żądza</b></div>
   <div id="stop-ov" hidden>
     <b>STOP</b>
     <p>Wszystko wstrzymane. Porozmawiajcie.</p>
@@ -551,7 +576,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="data.js?v=202610182149"></script>
-<script src="app.js?v=202610182149"></script>
+<script src="data.js?v=202610182158"></script>
+<script src="app.js?v=202610182158"></script>
 </body>
 </html>

@@ -1320,4 +1320,101 @@ Object.keys(INTRO).forEach(function (id) {
     $('intro-go').onclick = orig; show('intro');
   };
 });
+
+/* ---------- blokada PIN ---------- */
+var PIN = { h: store.get('pin', null), mode: '', buf: '', first: '', fails: store.get('pinfails', 0), until: store.get('pinuntil', 0), away: 0, tm: null };
+function pinHash(p) {
+  var s = 'zadza|' + p;
+  try {
+    if (window.crypto && crypto.subtle && window.TextEncoder) {
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function (b) {
+        return Array.prototype.map.call(new Uint8Array(b), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+      });
+    }
+  } catch (e) {}
+  var x = 5381; for (var i = 0; i < s.length; i++) x = ((x << 5) + x + s.charCodeAt(i)) | 0;
+  return Promise.resolve('d' + x);
+}
+function pinDots() { qa('#pin-dots i').forEach(function (d, i) { d.classList.toggle('on', i < PIN.buf.length); }); }
+function pinMsg(t) { $('pin-m').textContent = t || ''; }
+function pinLeft() { return Math.max(0, Math.ceil((PIN.until - Date.now()) / 1000)); }
+function pinTick() {
+  clearTimeout(PIN.tm);
+  var l = pinLeft();
+  if (l > 0) { pinMsg('Za dużo prób. Spróbuj za ' + l + ' s.'); PIN.tm = setTimeout(pinTick, 1000); }
+  else if ($('pin-m').textContent.indexOf('Za dużo') === 0) pinMsg('');
+}
+function pinOpen(mode) {
+  PIN.mode = mode; PIN.buf = ''; PIN.first = '';
+  var T = { unlock: 'Wpisz PIN', new1: 'Ustaw nowy PIN', new2: 'Powtórz PIN', chg: 'Wpisz obecny PIN', off: 'Wpisz obecny PIN' };
+  $('pin-t').textContent = T[mode]; pinMsg(''); pinDots();
+  $('pin-cancel').style.visibility = mode === 'unlock' ? 'hidden' : 'visible';
+  $('pin-forgot').hidden = !(mode === 'unlock' || mode === 'chg' || mode === 'off');
+  $('pin-ov').hidden = false;
+  if (mode === 'unlock' || mode === 'chg' || mode === 'off') pinTick();
+}
+function pinClose() { $('pin-ov').hidden = true; PIN.buf = ''; PIN.mode = ''; }
+function pinLock() {
+  if (!PIN.h || !$('pin-ov').hidden) return;
+  if (PAUSED === false && (cur === 'lic' || cur === 'kon')) setPause(true);
+  pinOpen('unlock');
+}
+function pinBad(msg) {
+  var d = $('pin-dots'); d.classList.remove('err'); void d.offsetWidth; d.classList.add('err'); vib(80);
+  PIN.buf = ''; pinDots(); pinMsg(msg);
+}
+function pinDone() {
+  var p = PIN.buf, m = PIN.mode;
+  if (m === 'new1') { PIN.first = p; PIN.buf = ''; PIN.mode = 'new2'; $('pin-t').textContent = 'Powtórz PIN'; pinMsg(''); pinDots(); return; }
+  if (m === 'new2') {
+    if (p !== PIN.first) { PIN.mode = 'new1'; PIN.first = ''; $('pin-t').textContent = 'Ustaw nowy PIN'; pinBad('PIN-y się różnią. Zacznij od nowa.'); return; }
+    pinHash(p).then(function (h) { PIN.h = h; store.set('pin', h); PIN.fails = 0; store.set('pinfails', 0); pinClose(); pinRender(); toast('PIN ustawiony'); });
+    return;
+  }
+  if (pinLeft() > 0) { pinBad('Za dużo prób. Spróbuj za ' + pinLeft() + ' s.'); pinTick(); return; }
+  pinHash(p).then(function (h) {
+    if (h === PIN.h) {
+      PIN.fails = 0; store.set('pinfails', 0);
+      if (m === 'unlock') { pinClose(); }
+      else if (m === 'chg') { pinOpen('new1'); }
+      else if (m === 'off') { PIN.h = null; store.set('pin', null); pinClose(); pinRender(); toast('PIN wyłączony'); }
+    } else {
+      PIN.fails++; store.set('pinfails', PIN.fails);
+      if (PIN.fails >= 5) { PIN.until = Date.now() + 30000; store.set('pinuntil', PIN.until); PIN.fails = 0; store.set('pinfails', 0); pinBad(''); pinTick(); }
+      else pinBad('Zły PIN. Pozostało prób: ' + (5 - PIN.fails) + '.');
+    }
+  });
+}
+$('pin-pad').addEventListener('click', function (e) {
+  var b = e.target.closest ? e.target.closest('button') : null; if (!b) return;
+  var k = b.getAttribute('data-k');
+  if (k === 'x') { pinClose(); return; }
+  if (k === 'b') { PIN.buf = PIN.buf.slice(0, -1); pinDots(); return; }
+  if (PIN.buf.length >= 4) return;
+  PIN.buf += k; pinDots(); vib(15);
+  if (PIN.buf.length === 4) setTimeout(pinDone, 120);
+});
+document.addEventListener('keydown', function (e) {
+  if ($('pin-ov').hidden) return;
+  if (/^[0-9]$/.test(e.key) && PIN.buf.length < 4) { PIN.buf += e.key; pinDots(); if (PIN.buf.length === 4) setTimeout(pinDone, 120); }
+  else if (e.key === 'Backspace') { PIN.buf = PIN.buf.slice(0, -1); pinDots(); }
+});
+$('pin-forgot').onclick = function () {
+  if (!confirm('Zapomniany PIN można usunąć tylko razem ze wszystkimi danymi aplikacji: imionami, ulubionymi, bonami i zapisaną grą. Usunąć wszystko?')) return;
+  try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('zadza:') === 0) localStorage.removeItem(k); }); } catch (e) {}
+  location.reload();
+};
+function pinRender() {
+  $('pin-state').textContent = PIN.h ? 'PIN jest włączony.' : 'PIN jest wyłączony.';
+  $('pin-set').textContent = PIN.h ? 'Zmień PIN' : 'Ustaw PIN';
+  $('pin-off').hidden = !PIN.h;
+}
+$('lnk-pin').onclick = function () { pinRender(); show('pin'); };
+$('pin-set').onclick = function () { pinOpen(PIN.h ? 'chg' : 'new1'); };
+$('pin-off').onclick = function () { pinOpen('off'); };
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) { PIN.away = Date.now(); if (PIN.h) $('cover').hidden = false; }
+  else { $('cover').hidden = true; if (PIN.h && PIN.away && Date.now() - PIN.away > 30000) pinLock(); }
+});
+if (PIN.h) pinLock();
 })();

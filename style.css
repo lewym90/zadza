@@ -386,3 +386,19 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 
 .kleg{position:absolute;left:10px;top:8px;display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--skin);background:rgba(10,2,6,.6);padding:3px 8px;border-radius:10px}
 .kleg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:4px}.kleg i:first-child{margin-left:0}
+
+#pin-ov,#cover{position:fixed;inset:0;z-index:120;background:#0b0104;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;padding:24px;text-align:center}
+#pin-ov[hidden],#cover[hidden]{display:none}
+#cover{z-index:130}
+#cover b{font-family:var(--display);font-style:italic;font-weight:900;font-size:3.6rem;color:#ff4d6f}
+#pin-t{font-family:var(--display);font-style:italic;font-weight:900;font-size:2rem;color:var(--skin)}
+#pin-m{min-height:1.4em;margin:0;color:#ff8aa0;font-size:.92rem}
+#pin-dots{display:flex;gap:16px;margin:4px 0 8px}
+#pin-dots i{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,211,196,.5)}
+#pin-dots i.on{background:#ff4d6f;box-shadow:none}
+#pin-dots.err{animation:pinshake .35s}
+@keyframes pinshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+#pin-pad{display:grid;grid-template-columns:repeat(3,76px);gap:14px}
+#pin-pad button{height:76px;border-radius:50%;background:rgba(255,211,196,.1);color:var(--skin);font-size:1.7rem;font-weight:600;box-shadow:inset 0 0 0 1px rgba(255,211,196,.2)}
+#pin-pad button:active{background:rgba(255,77,111,.35)}
+#pin-pad button.sm{font-size:.95rem;font-weight:500;background:transparent;box-shadow:none}
