@@ -4,7 +4,7 @@
 
 var LV = DATA.levels, HOT = DATA.hot, FIN = DATA.fin, PEN = DATA.pen, CATS = DATA.cats;
 var BYID = {};
-[].concat(LV[1].cards, LV[2].cards, LV[3].cards, LV[4].cards, HOT, FIN, PEN).forEach(function (c) { BYID[c.id] = c; });
+[].concat(LV[1].cards, LV[2].cards, LV[3].cards, LV[4].cards, LV[5].cards, HOT, FIN, PEN).forEach(function (c) { BYID[c.id] = c; });
 
 /* ---------- pomocnicze ---------- */
 function $(id) { return document.getElementById(id); }
@@ -93,9 +93,9 @@ $('lnk-bony').onclick = function () { show('bony'); };
 $('lnk-fav').onclick = function () { show('fav'); };
 
 /* ---------- ustawienia ---------- */
-var LVC = ['', '255,170,140', '255,110,60', '255,40,90', '200,10,40'];
+var LVC = ['', '255,170,140', '255,110,60', '255,40,90', '200,10,40', '120,0,30'];
 var NOTES = {
-  esc: 'Zaczynacie od Lodu. Co kilka kart robi się goręcej, aż do poziomu Bez granic.',
+  esc: 'Zaczynacie od Lodu. Co kilka kart robi się goręcej, aż do poziomu Zero zasad.',
   level: 'Wybierasz jeden poziom i na nim zaczynacie. W trakcie gry możesz go zmienić.',
   roul: 'Gra losuje poziom startowy. W trakcie gry możesz go zmienić.'
 };
@@ -109,7 +109,7 @@ function openSetup() {
 }
 function buildTiers() {
   var h = '';
-  for (var l = 1; l <= 4; l++) {
+  for (var l = 1; l <= 5; l++) {
     h += '<button class="tier" data-l="' + l + '"><span class="n">' + l + '</span><div><b>' + esc(LV[l].name) + '</b><span>' + esc(LV[l].sub) + '</span></div></button>';
   }
   $('tiers').innerHTML = h;
@@ -198,7 +198,7 @@ function spin(el, items, finalIdx, ms, done) {
 function startDraw() {
   var names = S.names;
   var starter = rnd(2);
-  var lvl = S.set.mode === 'level' ? S.set.level : (S.set.mode === 'esc' ? 1 : 1 + rnd(4));
+  var lvl = S.set.mode === 'level' ? S.set.level : (S.set.mode === 'esc' ? 1 : 1 + rnd(5));
   CFG.draw = { starter: starter, lvl: lvl };
   $('btn-draw-go').disabled = true;
   $('btn-draw-go').textContent = 'Zaczynamy';
@@ -222,7 +222,7 @@ function startDraw() {
       $('btn-draw-go').disabled = false;
     };
     if (S.set.mode === 'roul') {
-      var lnames = [1, 2, 3, 4].map(function (l) { return l + ' ' + LV[l].name; });
+      var lnames = [1, 2, 3, 4, 5].map(function (l) { return l + ' ' + LV[l].name; });
       setTimeout(function () { spin(rl, lnames, lvl - 1, 2000, function () { document.body.setAttribute('data-level', lvl); finish(); }); }, 450);
     } else finish();
   });
@@ -232,10 +232,10 @@ $('btn-draw-go').onclick = function () {
   var length = S.set.length;
   G = {
     mode: S.set.mode, lvl: d.lvl, length: length,
-    per: length > 0 ? Math.max(3, Math.ceil(length / 4)) : 8,
+    per: length > 0 ? Math.max(3, Math.ceil(length / 5)) : 8,
     starter: d.starter, player: d.starter, turn: 0,
     names: S.names.slice(), skips: [S.set.skips, S.set.skips],
-    used: {}, lastHot: -9, cur: null, log: [], cl: [0, 0], ejAt: -99,
+    used: {}, lastHot: -9, cur: null, log: [], cl: [0, 0], ejAt: -99, herO: 0,
     stat: { skips: 0, pens: 0, hot: 0, bony: 0 }, over: false, t0: Date.now()
   };
   S.game = G; save('game');
@@ -245,7 +245,7 @@ $('btn-draw-go').onclick = function () {
 
 /* ---------- talia ---------- */
 /* spójność: stan ubrań (0 ubrany, 1 bielizna, 2 nago) i odstęp po wytrysku */
-var EJ_GAP = 6, LVMIN = [0, 0, 1, 1, 1];
+var EJ_GAP = 6, LVMIN = [0, 0, 1, 1, 1, 2];
 function clInit() {
   if (!G.cl) G.cl = [0, 0];
   if (G.ejAt === undefined) G.ejAt = -99;
@@ -276,10 +276,11 @@ function applyEffects() {
     if (r.et !== undefined) G.cl[p ^ 1] = applyFx(r.et, G.cl[p ^ 1]);
   }
   if (ejHere(c, p)) G.ejAt = G.turn;
+  if (c.o) G.herO = 1;
 }
 function findCard(id) {
   var i, l, arr;
-  for (l = 1; l <= 4; l++) { arr = LV[l].cards; for (i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; }
+  for (l = 1; l <= 5; l++) { arr = LV[l].cards; for (i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; }
   var pools = [HOT, FIN, PEN];
   for (l = 0; l < 3; l++) for (i = 0; i < pools[l].length; i++) if (pools[l][i].id === id) return pools[l][i];
   return null;
@@ -293,6 +294,7 @@ function vetoed(c) {
 }
 function weight(c) {
   var w = 1;
+  if (c.h && G && G.ejAt > -99 && G.turn - G.ejAt <= 3) w *= 4;
   if (c.g && S.prefs) c.g.forEach(function (t) {
     if (S.prefs[0] && S.prefs[0][t] === 'tak') w += 0.6;
     if (S.prefs[1] && S.prefs[1][t] === 'tak') w += 0.6;
@@ -349,6 +351,10 @@ function startTurn() {
 function startFinale() {
   G.turn++;
   var pool = FIN.filter(function (c) { return !vetoed(c) && consistent(c); });
+  if (!G.herO) {
+    var hp = pool.filter(function (c) { return c.o; });
+    if (hp.length) pool = hp;
+  }
   if (!pool.length) pool = FIN.filter(function (c) { return !vetoed(c); });
   if (!pool.length) pool = FIN;
   G.over = true;
@@ -363,7 +369,7 @@ function onNext() {
   G.player ^= 1;
   var done = G.turn;
   if (G.length > 0 && done >= G.length) { startFinale(); return; }
-  if (G.mode === 'esc' && done % G.per === 0 && G.lvl < 4) { levelUp(G.lvl + 1); return; }
+  if (G.mode === 'esc' && done % G.per === 0 && G.lvl < 5) { levelUp(G.lvl + 1); return; }
   startTurn();
 }
 function levelUp(l) {
@@ -516,7 +522,7 @@ function toggleTimer() {
 /* ---------- menu ---------- */
 function buildMenu() {
   var h = '';
-  for (var l = 1; l <= 4; l++) h += '<button data-l="' + l + '" class="' + (G.lvl === l ? 'on' : '') + '">' + l + '. ' + esc(LV[l].name) + '</button>';
+  for (var l = 1; l <= 5; l++) h += '<button data-l="' + l + '" class="' + (G.lvl === l ? 'on' : '') + '">' + l + '. ' + esc(LV[l].name) + '</button>';
   $('menu-lvls').innerHTML = h;
   $('m-bony-n').textContent = S.bony.length ? S.bony.length + ' zapisane' : '';
   $('m-fav-n').textContent = S.fav.length ? S.fav.length + ' ' + (S.fav.length === 1 ? 'karta' : (S.fav.length % 10 >= 2 && S.fav.length % 10 <= 4 && (S.fav.length % 100 < 12 || S.fav.length % 100 > 14) ? 'karty' : 'kart')) : '';

@@ -23,6 +23,7 @@ body[data-level="1"]{--bpm:62;--heat:.25}
 body[data-level="2"]{--bpm:80;--heat:.45}
 body[data-level="3"]{--bpm:98;--heat:.7}
 body[data-level="4"]{--bpm:122;--heat:1}
+body[data-level="5"]{--bpm:148;--heat:1.25}
 body[data-role="m"]{--role:#ff7a3d;--role2:#ff3b1f}
 body[data-role="f"]{--role:#ff4f8b;--role2:#d4136b}
 
@@ -145,7 +146,7 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 .tier b{display:block;font-family:var(--display);font-style:italic;font-size:1.2rem;font-weight:700}
 .tier span{color:var(--muted);font-size:.85rem}
 .tier.on{box-shadow:inset 0 0 0 2px rgb(var(--tc)),0 0 28px rgba(var(--tc),.4)}
-.tier:nth-child(1){--tc:255,170,140}.tier:nth-child(2){--tc:255,110,60}.tier:nth-child(3){--tc:255,40,90}.tier:nth-child(4){--tc:200,10,40}
+.tier:nth-child(1){--tc:255,170,140}.tier:nth-child(2){--tc:255,110,60}.tier:nth-child(3){--tc:255,40,90}.tier:nth-child(4){--tc:200,10,40}.tier:nth-child(5){--tc:150,0,40}
 
 /* ---------- wybory tak / może / nie ---------- */
 .rows{display:grid;gap:10px}
@@ -171,7 +172,7 @@ body[data-role="m"] .wash.m,body[data-role="f"] .wash.f{opacity:1}
 /* ---------- gra ---------- */
 .top{display:flex;align-items:center;gap:12px}
 .heat{flex:1;display:grid;gap:6px}
-.heat .segs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.heat .segs{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
 .heat .segs i{height:7px;border-radius:4px;background:rgba(255,211,196,.14)}
 .heat .segs i.on{background:linear-gradient(90deg,#ff7a3d,#e3123a);box-shadow:0 0 12px rgba(255,60,80,.85)}
 .heat .segs i.cur{animation:heart var(--beat) infinite}
