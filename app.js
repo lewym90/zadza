@@ -245,7 +245,7 @@ $('btn-draw-go').onclick = function () {
 
 /* ---------- talia ---------- */
 /* spójność: stan ubrań (0 ubrany, 1 bielizna, 2 nago) i odstęp po wytrysku */
-var EJ_GAP = 12, LVMIN = [0, 0, 1, 1, 1];
+var EJ_GAP = 6, LVMIN = [0, 0, 1, 1, 1];
 function clInit() {
   if (!G.cl) G.cl = [0, 0];
   if (G.ejAt === undefined) G.ejAt = -99;
