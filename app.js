@@ -2,9 +2,33 @@
 (function () {
 'use strict';
 
-var LV = DATA.levels, HOT = DATA.hot, FIN = DATA.fin, PEN = DATA.pen, CATS = DATA.cats;
+var ORIG = { lv: DATA.levels, hot: DATA.hot, fin: DATA.fin, pen: DATA.pen, pcw: DATA.pcw, lic: DATA.lic, kon: DATA.kon, cats: DATA.cats };
+var LV = ORIG.lv, HOT = ORIG.hot, FIN = ORIG.fin, PEN = ORIG.pen, CATS = ORIG.cats;
+/* tryb ekstremalny: domyślnie wyłączony, włączany tylko w ustawieniach */
+var EXT = false; try { EXT = localStorage.getItem('zadza:ext') === '1'; } catch (e) {}
+var MAXL = 5;
+var HARDRE = /sik|mocz|fist|pięś|rozciąg|całą dłoń|całej dłoni/i;
+function hard(o) {
+  if (!o) return false;
+  if ((o.g && o.g.indexOf('ekstrem') >= 0) || o.l >= 5 || o.min >= 5) return true;
+  for (var k in o) if (typeof o[k] === 'string' && HARDRE.test(o[k])) return true;
+  return false;
+}
+function hideHard(g) { return !EXT && hard(g); }
+function FX(a) { return EXT ? a : a.filter(function (x) { return !hard(x); }); }
+function FXo(o) { var r = {}; for (var k in o) r[k] = Array.isArray(o[k]) ? FX(o[k]) : o[k]; return r; }
+function applyExt() {
+  MAXL = EXT ? 5 : 4;
+  var lv = {};
+  for (var l = 1; l <= 5; l++) lv[l] = { name: ORIG.lv[l].name, sub: ORIG.lv[l].sub, cards: l > MAXL ? [] : FX(ORIG.lv[l].cards) };
+  LV = DATA.levels = lv;
+  HOT = DATA.hot = FX(ORIG.hot); FIN = DATA.fin = FX(ORIG.fin); PEN = DATA.pen = FX(ORIG.pen);
+  DATA.pcw = FXo(ORIG.pcw); DATA.lic = FXo(ORIG.lic); DATA.kon = FXo(ORIG.kon);
+  CATS = DATA.cats = EXT ? ORIG.cats : ORIG.cats.filter(function (c) { return c.k !== 'ekstrem'; });
+}
+applyExt();
 var BYID = {};
-[].concat(LV[1].cards, LV[2].cards, LV[3].cards, LV[4].cards, LV[5].cards, HOT, FIN, PEN).forEach(function (c) { BYID[c.id] = c; });
+[].concat(ORIG.lv[1].cards, ORIG.lv[2].cards, ORIG.lv[3].cards, ORIG.lv[4].cards, ORIG.lv[5].cards, ORIG.hot, ORIG.fin, ORIG.pen).forEach(function (c) { BYID[c.id] = c; });
 
 /* ---------- pomocnicze ---------- */
 function $(id) { return document.getElementById(id); }
@@ -97,7 +121,7 @@ $('lnk-fav').onclick = function () { show('fav'); };
 /* ---------- ustawienia ---------- */
 var LVC = ['', '255,170,140', '255,110,60', '255,40,90', '200,10,40', '120,0,30'];
 var NOTES = {
-  esc: 'Zaczynacie od Lodu. Co kilka kart robi się goręcej, aż do poziomu Zero zasad.',
+  get esc() { return 'Zaczynacie od Lodu. Co kilka kart robi się goręcej, aż do poziomu ' + (EXT ? 'Zero zasad' : 'Bez granic') + '.'; },
   level: 'Wybierasz jeden poziom i na nim zaczynacie. W trakcie gry możesz go zmienić.',
   roul: 'Gra losuje poziom startowy. W trakcie gry możesz go zmienić.'
 };
@@ -111,7 +135,7 @@ function openSetup() {
 }
 function buildTiers() {
   var h = '';
-  for (var l = 1; l <= 5; l++) {
+  for (var l = 1; l <= MAXL; l++) {
     h += '<button class="tier" data-l="' + l + '"><span class="n">' + l + '</span><div><b>' + esc(LV[l].name) + '</b><span>' + esc(LV[l].sub) + '</span></div></button>';
   }
   $('tiers').innerHTML = h;
@@ -205,7 +229,7 @@ function spin(el, items, finalIdx, ms, done) {
 function startDraw() {
   var names = S.names;
   var starter = rnd(2);
-  var lvl = S.set.mode === 'level' ? S.set.level : (S.set.mode === 'esc' ? 1 : 1 + rnd(5));
+  var lvl = S.set.mode === 'level' ? S.set.level : (S.set.mode === 'esc' ? 1 : 1 + rnd(MAXL));
   CFG.draw = { starter: starter, lvl: lvl };
   $('btn-draw-go').disabled = true;
   $('btn-draw-go').textContent = 'Zaczynamy';
@@ -229,7 +253,7 @@ function startDraw() {
       $('btn-draw-go').disabled = false;
     };
     if (S.set.mode === 'roul') {
-      var lnames = [1, 2, 3, 4, 5].map(function (l) { return l + ' ' + LV[l].name; });
+      var lnames = [1, 2, 3, 4, 5].slice(0, MAXL).map(function (l) { return l + ' ' + LV[l].name; });
       setTimeout(function () { spin(rl, lnames, lvl - 1, 2000, function () { document.body.setAttribute('data-level', lvl); finish(); }); }, 450);
     } else finish();
   });
@@ -239,7 +263,7 @@ $('btn-draw-go').onclick = function () {
   var length = S.set.length;
   G = {
     mode: S.set.mode, lvl: d.lvl, length: length,
-    per: length > 0 ? Math.max(3, Math.floor(length / 5)) : 8,
+    per: length > 0 ? Math.max(3, Math.floor(length / MAXL)) : 8,
     starter: d.starter, player: d.starter, turn: 0,
     names: S.names.slice(), skips: [S.set.skips, S.set.skips],
     used: {}, lastHot: -9, cur: null, log: [], cl: [0, 0], ejAt: -99, herO: 0,
@@ -287,8 +311,8 @@ function applyEffects() {
 }
 function findCard(id) {
   var i, l, arr;
-  for (l = 1; l <= 5; l++) { arr = LV[l].cards; for (i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; }
-  var pools = [HOT, FIN, PEN];
+  for (l = 1; l <= 5; l++) { arr = ORIG.lv[l].cards; for (i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; }
+  var pools = [ORIG.hot, ORIG.fin, ORIG.pen];
   for (l = 0; l < 3; l++) for (i = 0; i < pools[l].length; i++) if (pools[l][i].id === id) return pools[l][i];
   return null;
 }
@@ -376,7 +400,7 @@ function onNext() {
   G.player ^= 1;
   var done = G.turn;
   if (G.length > 0 && done >= G.length) { startFinale(); return; }
-  if (G.mode === 'esc' && done % G.per === 0 && G.lvl < 5) { levelUp(G.lvl + 1); return; }
+  if (G.mode === 'esc' && done % G.per === 0 && G.lvl < MAXL) { levelUp(G.lvl + 1); return; }
   startTurn();
 }
 function levelUp(l) {
@@ -529,7 +553,7 @@ function toggleTimer() {
 /* ---------- menu ---------- */
 function buildMenu() {
   var h = '';
-  for (var l = 1; l <= 5; l++) h += '<button data-l="' + l + '" class="' + (G.lvl === l ? 'on' : '') + '">' + l + '. ' + esc(LV[l].name) + '</button>';
+  for (var l = 1; l <= MAXL; l++) h += '<button data-l="' + l + '" class="' + (G.lvl === l ? 'on' : '') + '">' + l + '. ' + esc(LV[l].name) + '</button>';
   $('menu-lvls').innerHTML = h;
   $('m-bony-n').textContent = S.bony.length ? S.bony.length + ' zapisane' : '';
   $('m-fav-n').textContent = S.fav.length ? S.fav.length + ' ' + (S.fav.length === 1 ? 'karta' : (S.fav.length % 10 >= 2 && S.fav.length % 10 <= 4 && (S.fav.length % 100 < 12 || S.fav.length % 100 > 14) ? 'karty' : 'kart')) : '';
@@ -557,11 +581,11 @@ $('btn-bony').onclick = function () { show('bony'); };
 /* ---------- prawda czy wyzwanie ---------- */
 var PC = { lvlSel: 0, skipSel: 3, g: null };
 var PDRESS = ['', 'Ubrani', 'W bieliźnie', 'Nago', 'Nago', 'Nago'];
-function pcwLvl(g) { return g.fixed ? g.fixed : Math.min(5, 1 + Math.floor(g.turn / 6)); }
+function pcwLvl(g) { return g.fixed ? g.fixed : Math.min(MAXL, 1 + Math.floor(g.turn / 6)); }
 function pSync() {
   qa('#pseg-lvl button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-v') === PC.lvlSel); });
   qa('#pseg-skip button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-v') === PC.skipSel); });
-  $('pnote-lvl').textContent = PC.lvlSel === 0 ? 'Zaczynacie od Lodu, a co kilka tur robi się goręcej, aż do Zero zasad.' : (PC.lvlSel + '. ' + LV[PC.lvlSel].name + ' - ' + LV[PC.lvlSel].sub);
+  $('pnote-lvl').textContent = PC.lvlSel === 0 ? 'Zaczynacie od Lodu, a co kilka tur robi się goręcej, aż do ' + LV[MAXL].name + '.' : (PC.lvlSel + '. ' + LV[PC.lvlSel].name + ' - ' + LV[PC.lvlSel].sub);
 }
 $('go-pcw').onclick = function () {
   var s = store.get('pcw', null); if (s) { PC.lvlSel = s.l; PC.skipSel = s.s; }
@@ -660,6 +684,7 @@ function fantStart(pi) {
   $('fsel-hd').textContent = 'Fantazje: ' + S.names[pi]; $('fsel-back').hidden = pi !== 0;
   var h = '';
   DATA.fant.forEach(function (f) {
+    if (hideHard(f)) return;
     h += '<div class="row" data-k="' + f.id + '"><span class="t">' + esc(f.t) + '<small>' + esc(f.z) + '</small></span><div class="tri">' +
       '<button data-v="tak">Tak</button><button data-v="moze">Może</button><button data-v="nie">Nie</button></div></div>';
     if (!FS.v[pi][f.id]) FS.v[pi][f.id] = 'nie';
@@ -698,7 +723,7 @@ function fTier(f) {
 }
 function fReveal() {
   FR = { seen: [], cur: -1 };
-  var all = DATA.fant.filter(function (f) { return fTier(f) > 0; });
+  var all = DATA.fant.filter(function (f) { return !hideHard(f) && fTier(f) > 0; });
   var t3 = all.filter(function (f) { return fTier(f) === 3; }).length;
   var t2 = all.filter(function (f) { return fTier(f) === 2; }).length;
   var t1 = all.length - t3 - t2;
@@ -731,7 +756,7 @@ function fShow(id) {
   try { $('fr-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
 }
 $('btn-fdraw').onclick = function () {
-  var all = DATA.fant.filter(function (f) { return fTier(f) > 0; });
+  var all = DATA.fant.filter(function (f) { return !hideHard(f) && fTier(f) > 0; });
   var fresh = all.filter(function (f) { return FR.seen.indexOf(f.id) < 0; });
   if (!fresh.length) { FR.seen = []; fresh = all.filter(function (f) { return f.id !== FR.cur; }); if (!fresh.length) fresh = all; }
   var top = Math.max.apply(null, fresh.map(fTier));
@@ -743,11 +768,11 @@ $('fr-list').onclick = function (e) { var b = e.target.closest('button'); if (b)
 /* ---------- kamasutra ---------- */
 var KM = { cat: '', cur: -1, seen: [] };
 function kList() {
-  return DATA.kama.filter(function (k) { return !dVeto(k.g) && (!KM.cat || k.c === KM.cat); });
+  return DATA.kama.filter(function (k) { return !hideHard(k) && !dVeto(k.g) && (!KM.cat || k.c === KM.cat); });
 }
 function kCats() {
   var cs = [], seen = {};
-  DATA.kama.forEach(function (k) { if (!dVeto(k.g) && !seen[k.c]) { seen[k.c] = 1; cs.push(k.c); } });
+  DATA.kama.forEach(function (k) { if (!hideHard(k) && !dVeto(k.g) && !seen[k.c]) { seen[k.c] = 1; cs.push(k.c); } });
   var h = '<button data-c="" class="' + (!KM.cat ? 'on' : '') + '">Wszystkie</button>';
   cs.forEach(function (c) { h += '<button data-c="' + esc(c) + '" class="' + (KM.cat === c ? 'on' : '') + '">' + esc(c) + '</button>'; });
   $('k-cats').innerHTML = h;
@@ -803,8 +828,9 @@ $('btn-kdraw').onclick = kDraw;
 /* ---------- kostki (osobna gra) ---------- */
 var DI = DATA.dice;
 var D = { lvl: 0, secs: 60, player: 0, n: 0, rolled: false, t: null };
-function diceLvl() { return D.lvl > 0 ? D.lvl : Math.min(5, 1 + Math.floor(D.n / 4)); }
+function diceLvl() { return D.lvl > 0 ? D.lvl : Math.min(MAXL, 1 + Math.floor(D.n / 4)); }
 function dVeto(g) {
+  if (!EXT && g && g.indexOf('ekstrem') >= 0) return true;
   if (!g || !S.prefs) return false;
   for (var i = 0; i < g.length; i++)
     if ((S.prefs[0] && S.prefs[0][g[i]] === 'nie') || (S.prefs[1] && S.prefs[1][g[i]] === 'nie')) return true;
@@ -1050,7 +1076,7 @@ $('btn-lic-start').onclick = function () {
   LI = { n: LN, r: 0, tok: [20, 20], bid: [0, 0], tot: [0, 0], dem: [0, 0], perf: [0, 0], used: {}, pi: 0, trap: false, card: null, lvl: 1, tie: 0 };
   licRound();
 };
-function licLvl() { return LI.r >= LI.n ? 5 : Math.min(5, 1 + Math.floor((LI.r - 1) * 5 / LI.n)); }
+function licLvl() { return LI.r >= LI.n ? MAXL : Math.min(MAXL, 1 + Math.floor((LI.r - 1) * MAXL / LI.n)); }
 function licRound() {
   LI.r++;
   var fin = LI.r === LI.n, lvl = licLvl(), c = null, pool;
@@ -1164,7 +1190,7 @@ $('btn-kon-start').onclick = function () {
   clearInterval(kt); kt = setInterval(kTick, 1000);
   kShowPick();
 };
-function kLvl() { return KN.lv ? KN.lv : Math.min(5, 1 + Math.floor(KN.rounds / 5)); }
+function kLvl() { return KN.lv ? KN.lv : Math.min(MAXL, 1 + Math.floor(KN.rounds / 5)); }
 function kTitle(i) { return i === 0 ? 'Pan' : 'Pani'; }
 function kHead() {
   var c = KN.ctl, o = 1 - c, lvl = kLvl();
@@ -1587,4 +1613,28 @@ $('mus-close').onclick = function () { $('mus-pan').hidden = true; };
 document.addEventListener('visibilitychange', function () { if (document.hidden) MUS.suspend(); else MUS.resume(); });
 document.addEventListener('pointerdown', function () { if (MUS.cfg.on && !MUS.running()) MUS.on(); }, true);
 musUI();
+
+/* ---------- tryb ekstremalny ---------- */
+function extUI() {
+  ['pseg-lvl', 'dseg-lvl', 'kseg-lvl'].forEach(function (id) {
+    var b = document.querySelector('#' + id + ' button[data-v="5"]'); if (b) b.hidden = !EXT;
+  });
+  if (S.set.level > MAXL) { S.set.level = MAXL; save('set'); }
+  if (typeof CFG !== 'undefined' && CFG && CFG.level > MAXL) CFG.level = MAXL;
+  if (D.lvl > MAXL) D.lvl = MAXL;
+  if (PC.lvlSel > MAXL) PC.lvlSel = MAXL;
+  if (KC.lvl > MAXL) KC.lvl = MAXL;
+  if (G && !G.ended && G.lvl > MAXL) { G.lvl = MAXL; save('game'); }
+  $('ext-state').textContent = EXT ? 'Tryb ekstremalny jest włączony.' : 'Tryb ekstremalny jest wyłączony.';
+  $('ext-sw').textContent = EXT ? 'Wyłącz tryb ekstremalny' : 'Włącz tryb ekstremalny';
+  $('ext-sw').className = 'btn ' + (EXT ? 'ghost' : 'latex');
+  $('lnk-ext').textContent = EXT ? 'Tryb ekstremalny: włączony' : 'Tryb ekstremalny';
+}
+$('lnk-ext').onclick = function () { extUI(); show('ext'); };
+$('ext-sw').onclick = function () {
+  EXT = !EXT; store.set('ext', EXT ? 1 : 0);
+  try { localStorage.setItem('zadza:ext', EXT ? '1' : '0'); } catch (e) {}
+  applyExt(); extUI();
+};
+extUI();
 })();

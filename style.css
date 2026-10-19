@@ -452,11 +452,11 @@ body.hasstop #mus-btn{right:calc(max(12px,env(safe-area-inset-right) + 8px) + 11
   #s-home .fine{grid-column:1 / -1;grid-row:3;text-align:center}
 
   /* ekrany ustawień: dwie kolumny */
-  #s-setup.on,#s-cards.on,#s-pcwset.on,#s-konset.on,#s-licset.on,#s-pin.on,#s-intro.on{display:grid;grid-template-columns:1fr 1fr;column-gap:26px;row-gap:10px;align-content:start}
-  #s-setup>*,#s-cards>*,#s-pcwset>*,#s-konset>*,#s-licset>*,#s-pin>*,#s-intro>*{grid-column:1 / -1}
+  #s-setup.on,#s-cards.on,#s-pcwset.on,#s-konset.on,#s-licset.on,#s-pin.on,#s-ext.on,#s-intro.on{display:grid;grid-template-columns:1fr 1fr;column-gap:26px;row-gap:10px;align-content:start}
+  #s-setup>*,#s-cards>*,#s-pcwset>*,#s-konset>*,#s-licset>*,#s-pin>*,#s-ext>*,#s-intro>*{grid-column:1 / -1}
   #s-setup>.names,#s-cards>.stack,#s-pcwset>.stack,#s-konset>.stack,#s-licset>.stack{grid-column:auto}
   #s-setup>.names{grid-column:1 / -1;grid-template-columns:1fr 1fr}
-  #s-setup>.grow,#s-cards>.grow,#s-pcwset>.grow,#s-konset>.grow,#s-licset>.grow,#s-pin>.grow,#s-intro>.grow{display:none}
+  #s-setup>.grow,#s-cards>.grow,#s-pcwset>.grow,#s-konset>.grow,#s-licset>.grow,#s-pin>.grow,#s-ext>.grow,#s-intro>.grow{display:none}
   #s-intro .intro-l{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   #s-intro .intro-l p{font-size:.86rem;padding:8px 10px}
   #s-intro #intro-go,#s-cards #btn-cards-go,#s-pcwset #btn-pcw-start,#s-konset #btn-kon-start,#s-licset #btn-lic-start{max-width:420px;justify-self:center;width:100%}

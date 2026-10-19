@@ -15,8 +15,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="fonts.css?v=202610182233">
-<link rel="stylesheet" href="style.css?v=202610182233">
+<link rel="stylesheet" href="fonts.css?v=202610191059">
+<link rel="stylesheet" href="style.css?v=202610191059">
 </head>
 <body data-level="1" data-role="m">
 
@@ -80,6 +80,7 @@
         <button class="link" id="lnk-bony">Bony</button>
         <button class="link" id="lnk-fav">Ulubione</button>
         <button class="link" id="lnk-pin">Blokada PIN</button>
+        <button class="link" id="lnk-ext">Tryb ekstremalny</button>
       </div>
       <div class="install" id="install" hidden>
         <span>Żeby grać jak w aplikacji: Udostępnij, a potem „Do ekranu początkowego”.</span>
@@ -512,6 +513,17 @@
     <div class="grow"></div>
     <button class="btn latex" data-go="choose">Wróć do wyboru gier</button>
   </section>
+  <section class="scr" id="s-ext">
+    <button class="back-l" data-go="home"><svg><use href="#i-back"/></svg>Wróć</button>
+    <h2 class="hd">Tryb ekstremalny</h2>
+    <p class="note" style="min-height:0">Domyślnie wyłączony. Włączony odblokowuje we wszystkich grach najmocniejszy poziom 5 (Zero zasad) oraz najostrzejsze karty: fisting, rozciąganie, sikanie i podobne. Włączajcie go tylko wtedy, gdy oboje tego chcecie. Zmiana działa od następnej rozdanej karty, a trwającą grę najlepiej zacząć od nowa.</p>
+    <p class="kd" id="ext-state"></p>
+    <div class="stack tight">
+      <button class="btn latex" id="ext-sw"></button>
+    </div>
+    <div class="grow"></div>
+  </section>
+
   <section class="scr" id="s-pin">
     <button class="back-l" data-go="home"><svg><use href="#i-back"/></svg>Wróć</button>
     <h2 class="hd">Blokada PIN</h2>
@@ -587,7 +599,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="data.js?v=202610182233"></script>
-<script src="app.js?v=202610182233"></script>
+<script src="data.js?v=202610191059"></script>
+<script src="app.js?v=202610191059"></script>
 </body>
 </html>
